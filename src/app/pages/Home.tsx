@@ -13,7 +13,7 @@ const STATUS_MAP: Record<string, { label: string; dot: string; bg: string; text:
   in_progress: { label: 'กำลังดำเนินการ', dot: 'bg-blue-500',   bg: 'bg-blue-50/80',   text: 'text-blue-700',  border: 'border-blue-200/60' },
   'in-progress': { label: 'กำลังดำเนินการ', dot: 'bg-blue-500',   bg: 'bg-blue-50/80',   text: 'text-blue-700',  border: 'border-blue-200/60' },
   completed:   { label: 'เสร็จสิ้น',       dot: 'bg-emerald-500', bg: 'bg-emerald-50/80', text: 'text-emerald-700', border: 'border-emerald-200/60' },
-  cancelled:   { label: 'ยกเลิก',          dot: 'bg-rose-500',    bg: 'bg-rose-50/80',    text: 'text-rose-700',   border: 'border-rose-200/60' },
+  cancelled:   { label: 'ยกเลิก',          dot: 'bg-rose-500',    bg: 'bg-rose-50/80',    text: 'text-rose-700',  border: 'border-rose-200/60' },
 };
 
 const QUICK_ACTIONS = [
@@ -56,7 +56,7 @@ export default function Home() {
       setStats({
         total:      list.length,
         pending:    list.filter((r) => r.status === 'pending').length,
-        inProgress: list.filter((r) => r.status === 'in-progress').length,
+        inProgress: list.filter((r) => r.status === 'in-progress' || r.status === 'in_progress').length,
         completed:  list.filter((r) => r.status === 'completed').length,
       });
     }
@@ -92,13 +92,13 @@ export default function Home() {
 
         <div className="relative z-10 px-8 py-8 flex items-center justify-between gap-6 backdrop-blur-[2px]">
           <div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-blue-200 border border-white/15 backdrop-blur-md mb-3 shadow-inner">
+            <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-white/10 text-blue-200 border border-white/15 backdrop-blur-md mb-3 shadow-inner">
               {roleLabel}
             </span>
             <h2 className="text-white text-3xl font-extrabold tracking-tight mb-1.5 drop-shadow-md">
               ยินดีต้อนรับ, {currentUser.name}!
             </h2>
-            <p className="text-blue-100/80 text-sm font-medium">
+            <p className="text-blue-100 text-sm font-medium">
               ระบบแจ้งซ่อมและติดตามสถานะอุปกรณ์ IT มหาวิทยาลัย
             </p>
           </div>
@@ -164,14 +164,16 @@ export default function Home() {
               style={{ animationDelay: `${s.delay * 0.08}s` }}
             >
               <div className="flex items-start justify-between mb-4">
-                <p className="text-slate-500 text-sm font-semibold tracking-wide">{s.label}</p>
+                {/* ขยายขนาดหัวข้อการ์ดเป็น text-base font-bold */}
+                <p className="text-slate-700 text-base font-bold tracking-wide">{s.label}</p>
                 <div className={`${s.iconBg} p-2.5 rounded-xl border border-slate-100 group-hover:scale-110 transition-transform duration-300`}>
                   <Icon className={`size-5 ${s.iconColor}`} />
                 </div>
               </div>
               
               <div className="flex items-baseline justify-between">
-                <p className="text-slate-900 text-3xl font-extrabold tracking-tight">{s.value}</p>
+                {/* ขยายขนาดตัวเลขสถิติเป็น text-4xl */}
+                <p className="text-slate-900 text-4xl font-black tracking-tight">{s.value}</p>
               </div>
 
               {/* Accent Line Bottom */}
@@ -185,7 +187,8 @@ export default function Home() {
       <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-md shadow-slate-200/50 animate-fade-in-up delay-300">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-1.5 h-6 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full shadow-sm" />
-          <h3 className="text-slate-900 font-bold text-lg tracking-tight">เมนูหลัก</h3>
+          {/* ขยายหัวข้อเมนูหลักเป็น text-xl */}
+          <h3 className="text-slate-900 font-bold text-xl tracking-tight">เมนูหลัก</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -205,8 +208,10 @@ export default function Home() {
                   <Icon className="size-6 transition-colors" style={{ color: action.color }} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-slate-800 font-bold text-sm group-hover:text-blue-600 transition-colors">{action.title}</p>
-                  <p className="text-slate-500 text-xs mt-0.5 truncate">{action.desc}</p>
+                  {/* ขยายขนาดฟอนต์หัวข้อเมนูย่อยเป็น text-base font-bold */}
+                  <p className="text-slate-800 font-bold text-base group-hover:text-blue-600 transition-colors">{action.title}</p>
+                  {/* ขยายขนาดคำอธิบายเป็น text-sm */}
+                  <p className="text-slate-500 text-sm mt-0.5 truncate">{action.desc}</p>
                 </div>
                 <div className="size-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
                   <ArrowRight className="size-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
@@ -223,18 +228,18 @@ export default function Home() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-6 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full shadow-sm" />
-              <h3 className="text-slate-900 font-bold text-lg tracking-tight">คำขอซ่อมล่าสุด</h3>
+              <h3 className="text-slate-900 font-bold text-xl tracking-tight">คำขอซ่อมล่าสุด</h3>
             </div>
             <button
               onClick={() => navigate('/dashboard/status')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-xl hover:bg-blue-50"
+              className="text-blue-600 hover:text-blue-700 text-base font-semibold flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-xl hover:bg-blue-50"
             >
               ดูทั้งหมด <ArrowRight className="size-4" />
             </button>
           </div>
 
           {recentRequests.length === 0 ? (
-            <div className="text-center py-10 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 text-slate-400 text-sm">
+            <div className="text-center py-10 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 text-slate-500 text-base font-medium">
               ยังไม่มีประวัติคำขอซ่อมในระบบ
             </div>
           ) : (
@@ -254,11 +259,13 @@ export default function Home() {
                     style={{ animationDelay: `${0.5 + i * 0.07}s` }}
                   >
                     <div>
-                      <p className="text-slate-800 text-sm font-bold">{req.equipment_type_name || req.equipmentType || '-'}</p>
-                      <p className="text-slate-400 text-xs mt-0.5 font-mono">รหัสอ้างอิง: {req.request_no || req.id}</p>
+                      {/* ขยายขนาดชื่ออุปกรณ์เป็น text-base */}
+                      <p className="text-slate-800 text-base font-bold">{req.equipment_type_name || req.equipmentType || '-'}</p>
+                      <p className="text-slate-500 text-xs mt-0.5 font-mono">รหัสอ้างอิง: {req.request_no || req.id}</p>
                     </div>
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border} shadow-sm`}>
-                      <span className={`size-2 rounded-full ${s.dot} ${req.status === 'in_progress' ? 'animate-pulse' : ''}`} />
+                    {/* ขยายขนาดป้ายสถานะเป็น text-sm */}
+                    <span className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold border ${s.bg} ${s.text} ${s.border} shadow-sm`}>
+                      <span className={`size-2.5 rounded-full ${s.dot} ${req.status === 'in_progress' || req.status === 'in-progress' ? 'animate-pulse' : ''}`} />
                       {s.label}
                     </span>
                   </div>

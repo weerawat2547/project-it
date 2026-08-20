@@ -51,9 +51,13 @@ export default function UserManagement() {
     setEditMode(true);
     setCurrentEditUser(user);
     setFormData({
-      username: user.username, password: '',
-      name: user.name, email: user.email,
-      role: user.role, department: user.department || '', phone: user.phone || '',
+      username: user.username || '', 
+      password: '', // ล้างรหัสผ่านเป็นค่าว่างเสมอเมื่อเปิดแก้ไข
+      name: user.name || '', 
+      email: user.email || '',
+      role: user.role || 'student', 
+      department: user.department || '', 
+      phone: user.phone || '',
     });
     setDialogOpen(true);
   };
@@ -62,7 +66,22 @@ export default function UserManagement() {
     setSaving(true);
     try {
       if (editMode && currentEditUser) {
-        await usersApi.update({ id: currentEditUser.id, ...formData });
+        // สร้าง Payload ข้อมูลทั่วไป โดยไม่รวมรหัสผ่านหากผู้ใช้ไม่ได้พิมพ์ใหม่
+        const payload: any = {
+          username: formData.username,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          department: formData.department,
+          phone: formData.phone,
+        };
+
+        // ส่ง password ไปอัปเดตเฉพาะเมื่อมีการระบุรหัสผ่านใหม่เข้ามาเท่านั้น
+        if (formData.password && formData.password.trim() !== '') {
+          payload.password = formData.password;
+        }
+
+        await usersApi.update({ id: currentEditUser.id, ...payload });
         toast.success('อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว');
       } else {
         await usersApi.create(formData);
@@ -91,11 +110,11 @@ export default function UserManagement() {
   const getRoleBadge = (role: UserRole) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-rose-100/80 text-rose-800 border border-rose-300/60 font-medium px-2.5 py-0.5 shadow-xs">ผู้ดูแลระบบ</Badge>;
+        return <Badge className="bg-rose-100/80 text-rose-800 border border-rose-300/60 font-semibold px-2.5 py-0.5 text-xs md:text-sm">ผู้ดูแลระบบ</Badge>;
       case 'technician':
-        return <Badge className="bg-blue-100/80 text-blue-800 border border-blue-300/60 font-medium px-2.5 py-0.5 shadow-xs">ช่างซ่อม</Badge>;
+        return <Badge className="bg-blue-100/80 text-blue-800 border border-blue-300/60 font-semibold px-2.5 py-0.5 text-xs md:text-sm">ช่างซ่อม</Badge>;
       case 'student':
-        return <Badge className="bg-sky-100/80 text-sky-800 border border-sky-300/60 font-medium px-2.5 py-0.5 shadow-xs">นักศึกษา</Badge>;
+        return <Badge className="bg-sky-100/80 text-sky-800 border border-sky-300/60 font-semibold px-2.5 py-0.5 text-xs md:text-sm">นักศึกษา</Badge>;
       default:
         return null;
     }
@@ -113,7 +132,7 @@ export default function UserManagement() {
   return (
     <div className="w-full min-h-[calc(100vh-80px)] p-6 bg-gradient-to-br from-sky-100/70 via-blue-50/50 to-indigo-100/60 text-slate-800 space-y-6">
       {/* Main Card Container */}
-      <Card className="bg-sky-50/60 border border-blue-200/70 shadow-sm rounded-xl overflow-hidden backdrop-blur-xs">
+      <Card className="w-full bg-sky-50/60 border border-blue-200/70 shadow-sm rounded-xl overflow-hidden backdrop-blur-xs">
         <CardHeader className="border-b border-blue-200/60 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white p-6 shadow-xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
@@ -121,18 +140,18 @@ export default function UserManagement() {
                 <Users className="size-6" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <CardTitle className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
                   จัดการผู้ใช้งาน
                   <ShieldCheck className="size-5 text-sky-200" />
                 </CardTitle>
-                <CardDescription className="text-blue-100 text-sm mt-0.5 font-normal">
+                <CardDescription className="text-blue-100 text-sm md:text-base mt-0.5 font-normal">
                   เพิ่ม แก้ไข และจัดการสิทธิ์ผู้ใช้งานในระบบบริการไอที
                 </CardDescription>
               </div>
             </div>
             <Button 
               onClick={handleOpenAddDialog}
-              className="bg-white text-blue-700 hover:bg-blue-50 font-semibold rounded-lg shadow-sm transition-all active:scale-95 border border-white/30"
+              className="bg-white text-blue-700 hover:bg-blue-50 font-semibold rounded-lg shadow-sm transition-all active:scale-95 border border-white/30 text-sm md:text-base px-4 py-2"
             >
               <UserPlus className="size-4 mr-2 text-blue-600" />
               เพิ่มผู้ใช้ใหม่
@@ -149,13 +168,13 @@ export default function UserManagement() {
                 placeholder="ค้นหาชื่อ, ชื่อผู้ใช้ หรืออีเมล..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white/90 border-blue-200 text-slate-800 placeholder:text-blue-400 focus-visible:ring-blue-500 rounded-lg h-10 text-sm shadow-2xs"
+                className="pl-10 bg-white/90 border-blue-200 text-slate-800 placeholder:text-blue-400 focus-visible:ring-blue-500 rounded-lg h-10 text-sm md:text-base shadow-2xs"
               />
             </div>
             <Button 
               variant="outline" 
               onClick={loadUsers}
-              className="border-blue-200 bg-white/90 text-blue-700 hover:bg-blue-50 rounded-lg h-10 px-4 font-medium shadow-2xs"
+              className="border-blue-200 bg-white/90 text-blue-700 hover:bg-blue-50 rounded-lg h-10 px-5 text-sm md:text-base font-semibold shadow-2xs"
             >
               ค้นหา
             </Button>
@@ -165,30 +184,30 @@ export default function UserManagement() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3 text-blue-600">
               <Loader2 className="size-7 animate-spin text-blue-600" />
-              <p className="text-sm">กำลังโหลดข้อมูลผู้ใช้...</p>
+              <p className="text-sm md:text-base">กำลังโหลดข้อมูลผู้ใช้...</p>
             </div>
           ) : (
             <div className="rounded-lg border border-blue-200/80 overflow-hidden bg-white/80 backdrop-blur-xs shadow-2xs">
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-blue-200/80 bg-blue-100/50 hover:bg-blue-100/50">
-                    <TableHead className="text-blue-900 font-bold text-xs uppercase tracking-wider">ชื่อผู้ใช้</TableHead>
-                    <TableHead className="text-blue-900 font-bold text-xs uppercase tracking-wider">ชื่อ-นามสกุล</TableHead>
-                    <TableHead className="text-blue-900 font-bold text-xs uppercase tracking-wider">อีเมล</TableHead>
-                    <TableHead className="text-blue-900 font-bold text-xs uppercase tracking-wider">แผนก/คณะ</TableHead>
-                    <TableHead className="text-blue-900 font-bold text-xs uppercase tracking-wider">บทบาท</TableHead>
-                    <TableHead className="text-right text-blue-900 font-bold text-xs uppercase tracking-wider">จัดการ</TableHead>
+                    <TableHead className="text-blue-900 font-bold text-sm md:text-base uppercase tracking-wider py-3.5 px-4">ชื่อผู้ใช้</TableHead>
+                    <TableHead className="text-blue-900 font-bold text-sm md:text-base uppercase tracking-wider py-3.5 px-4">ชื่อ-นามสกุล</TableHead>
+                    <TableHead className="text-blue-900 font-bold text-sm md:text-base uppercase tracking-wider py-3.5 px-4">อีเมล</TableHead>
+                    <TableHead className="text-blue-900 font-bold text-sm md:text-base uppercase tracking-wider py-3.5 px-4">แผนก/คณะ</TableHead>
+                    <TableHead className="text-blue-900 font-bold text-sm md:text-base uppercase tracking-wider py-3.5 px-4">บทบาท</TableHead>
+                    <TableHead className="text-right text-blue-900 font-bold text-sm md:text-base uppercase tracking-wider py-3.5 px-4">จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-blue-100/80">
                   {filteredUsers.map((user) => (
                     <TableRow key={user.id} className="hover:bg-blue-50/70 transition-colors">
-                      <TableCell className="font-medium text-blue-950">@{user.username}</TableCell>
-                      <TableCell className="text-slate-900 font-semibold">{user.name}</TableCell>
-                      <TableCell className="text-slate-600">{user.email}</TableCell>
-                      <TableCell className="text-slate-600">{user.department || '-'}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="font-semibold text-blue-950 text-sm md:text-base py-3.5 px-4">@{user.username}</TableCell>
+                      <TableCell className="text-slate-900 font-bold text-sm md:text-base py-3.5 px-4">{user.name}</TableCell>
+                      <TableCell className="text-slate-700 text-sm md:text-base py-3.5 px-4">{user.email || '-'}</TableCell>
+                      <TableCell className="text-slate-700 text-sm md:text-base py-3.5 px-4">{user.department || '-'}</TableCell>
+                      <TableCell className="py-3.5 px-4">{getRoleBadge(user.role)}</TableCell>
+                      <TableCell className="text-right py-3.5 px-4">
                         <div className="flex justify-end gap-1.5">
                           <Button 
                             variant="ghost" 
@@ -216,7 +235,7 @@ export default function UserManagement() {
           )}
 
           {!loading && filteredUsers.length === 0 && (
-            <div className="text-center py-12 text-slate-500 text-sm">ไม่พบข้อมูลผู้ใช้งาน</div>
+            <div className="text-center py-12 text-slate-500 text-sm md:text-base font-medium">ไม่พบข้อมูลผู้ใช้งาน</div>
           )}
         </CardContent>
       </Card>
@@ -225,10 +244,10 @@ export default function UserManagement() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl bg-slate-50 border-blue-200 text-slate-900 rounded-xl shadow-xl">
           <DialogHeader className="border-b border-blue-100 pb-4">
-            <DialogTitle className="text-lg font-bold text-blue-950">
+            <DialogTitle className="text-lg md:text-xl font-bold text-blue-950">
               {editMode ? 'แก้ไขข้อมูลผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}
             </DialogTitle>
-            <DialogDescription className="text-slate-600 text-sm">
+            <DialogDescription className="text-slate-600 text-sm md:text-base">
               กรุณากรอกข้อมูลผู้ใช้ให้ครบถ้วนเพื่ออัปเดตเข้าระบบ
             </DialogDescription>
           </DialogHeader>
@@ -236,59 +255,61 @@ export default function UserManagement() {
           <div className="space-y-4 py-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-semibold">ชื่อผู้ใช้ *</Label>
+                <Label className="text-slate-700 text-xs md:text-sm font-semibold">ชื่อผู้ใช้ *</Label>
                 <Input 
                   value={formData.username} 
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })} 
                   disabled={editMode} 
-                  className="bg-white border-blue-200 text-slate-800 rounded-md focus-visible:ring-blue-500"
+                  className="bg-white border-blue-200 text-slate-800 text-sm md:text-base rounded-md focus-visible:ring-blue-500"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-semibold">{editMode ? 'รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)' : 'รหัสผ่าน *'}</Label>
+                <Label className="text-slate-700 text-xs md:text-sm font-semibold">{editMode ? 'รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)' : 'รหัสผ่าน *'}</Label>
                 <Input 
                   type="password" 
                   value={formData.password} 
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-                  className="bg-white border-blue-200 text-slate-800 rounded-md focus-visible:ring-blue-500"
+                  autoComplete="new-password"
+                  placeholder={editMode ? 'เว้นว่างไว้หากไม่เปลี่ยน' : 'กำหนดรหัสผ่าน'}
+                  className="bg-white border-blue-200 text-slate-800 text-sm md:text-base rounded-md focus-visible:ring-blue-500"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-slate-700 text-xs font-semibold">ชื่อ-นามสกุล *</Label>
+              <Label className="text-slate-700 text-xs md:text-sm font-semibold">ชื่อ-นามสกุล *</Label>
               <Input 
                 value={formData.name} 
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                className="bg-white border-blue-200 text-slate-800 rounded-md focus-visible:ring-blue-500"
+                className="bg-white border-blue-200 text-slate-800 text-sm md:text-base rounded-md focus-visible:ring-blue-500"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-semibold">อีเมล *</Label>
+                <Label className="text-slate-700 text-xs md:text-sm font-semibold">อีเมล *</Label>
                 <Input 
                   type="email" 
                   value={formData.email} 
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
-                  className="bg-white border-blue-200 text-slate-800 rounded-md focus-visible:ring-blue-500"
+                  className="bg-white border-blue-200 text-slate-800 text-sm md:text-base rounded-md focus-visible:ring-blue-500"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-semibold">เบอร์โทรศัพท์</Label>
+                <Label className="text-slate-700 text-xs md:text-sm font-semibold">เบอร์โทรศัพท์</Label>
                 <Input 
                   value={formData.phone} 
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
-                  className="bg-white border-blue-200 text-slate-800 rounded-md focus-visible:ring-blue-500"
+                  className="bg-white border-blue-200 text-slate-800 text-sm md:text-base rounded-md focus-visible:ring-blue-500"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-semibold">บทบาท *</Label>
+                <Label className="text-slate-700 text-xs md:text-sm font-semibold">บทบาท *</Label>
                 <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v as UserRole })}>
-                  <SelectTrigger className="bg-white border-blue-200 text-slate-800 rounded-md focus:ring-blue-500">
+                  <SelectTrigger className="bg-white border-blue-200 text-slate-800 text-sm md:text-base rounded-md focus:ring-blue-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-blue-200 text-slate-800">
@@ -299,11 +320,11 @@ export default function UserManagement() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-slate-700 text-xs font-semibold">แผนก/คณะ</Label>
+                <Label className="text-slate-700 text-xs md:text-sm font-semibold">แผนก/คณะ</Label>
                 <Input 
                   value={formData.department} 
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })} 
-                  className="bg-white border-blue-200 text-slate-800 rounded-md focus-visible:ring-blue-500"
+                  className="bg-white border-blue-200 text-slate-800 text-sm md:text-base rounded-md focus-visible:ring-blue-500"
                 />
               </div>
             </div>
@@ -313,14 +334,14 @@ export default function UserManagement() {
             <Button 
               variant="outline" 
               onClick={() => setDialogOpen(false)}
-              className="border-blue-200 text-slate-700 hover:bg-blue-50 rounded-md"
+              className="border-blue-200 text-slate-700 hover:bg-blue-50 rounded-md text-sm md:text-base"
             >
               ยกเลิก
             </Button>
             <Button 
               onClick={handleSubmit} 
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm text-sm md:text-base"
             >
               {saving ? 'กำลังบันทึก...' : editMode ? 'บันทึกการเปลี่ยนแปลง' : 'เพิ่มผู้ใช้'}
             </Button>

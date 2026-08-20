@@ -142,20 +142,20 @@ export default function ReportRepair() {
   if (submitted) {
     return (
       <Card className="rounded-3xl border-2 border-slate-200/90 shadow-[0_20px_50px_rgba(16,185,129,0.2)] overflow-hidden animate-fade-in">
-        <CardContent className="pt-8 pb-12">
+        <CardContent className="pt-10 pb-14">
           <div className="text-center py-8">
             <div className="flex justify-center mb-6">
-              <div className="bg-emerald-100 p-5 rounded-3xl shadow-xl shadow-emerald-600/30 ring-8 ring-emerald-50">
-                <CheckCircle className="size-16 text-emerald-600 animate-bounce" />
+              <div className="bg-emerald-100 p-6 rounded-3xl shadow-xl shadow-emerald-600/30 ring-8 ring-emerald-50">
+                <CheckCircle className="size-20 text-emerald-600 animate-bounce" />
               </div>
             </div>
-            <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight mb-3">
+            <h3 className="text-4xl font-black text-slate-800 tracking-tight mb-4">
               ส่งคำขอซ่อมเรียบร้อยแล้ว!
             </h3>
-            <p className="text-slate-600 text-lg">
-              เลขที่คำขอ: <span className="font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-xl border-2 border-blue-200 shadow-sm">{submittedRequestNo}</span>
+            <p className="text-slate-600 text-xl font-medium">
+              เลขที่คำขอ: <span className="font-mono font-bold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-xl border-2 border-blue-200 shadow-sm text-2xl">{submittedRequestNo}</span>
             </p>
-            <p className="text-slate-500 text-sm mt-4 max-w-md mx-auto">
+            <p className="text-slate-500 text-base mt-5 max-w-lg mx-auto">
               เจ้าหน้าที่ได้รับข้อมูลคำขอซ่อมของคุณแล้ว และจะดำเนินการตรวจสอบโดยเร็วที่สุด
             </p>
           </div>
@@ -166,27 +166,27 @@ export default function ReportRepair() {
 
   return (
     <Card className="rounded-3xl border-2 border-slate-200/90 shadow-[0_15px_45px_rgba(0,0,0,0.12)] bg-white overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-slate-100 via-blue-50/50 to-slate-100 border-b-2 border-slate-200/80 p-7">
-        <div className="flex items-center gap-4">
-          <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-3.5 rounded-2xl shadow-xl shadow-blue-600/30 text-white shrink-0">
-            <FileText className="size-7" />
+      <CardHeader className="bg-gradient-to-r from-slate-100 via-blue-50/50 to-slate-100 border-b-2 border-slate-200/80 p-8">
+        <div className="flex items-center gap-5">
+          <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-4 rounded-2xl shadow-xl shadow-blue-600/30 text-white shrink-0">
+            <FileText className="size-9" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-slate-800 tracking-tight">แจ้งซ่อมอุปกรณ์ IT</CardTitle>
-            <CardDescription className="text-slate-600 font-medium text-sm mt-1">
+            <CardTitle className="text-3xl font-extrabold text-slate-800 tracking-tight">แจ้งซ่อมอุปกรณ์ IT</CardTitle>
+            <CardDescription className="text-slate-600 font-semibold text-base mt-1">
               กรุณากรอกรายละเอียดอาการเสียและข้อมูลอุปกรณ์เพื่อให้เจ้าหน้าที่เข้าดำเนินการ
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-7">
-        <form onSubmit={handleSubmit} className="space-y-7">
+      <CardContent className="p-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* ข้อมูลอุปกรณ์ */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="space-y-2">
-              <Label htmlFor="equipmentType" className="text-slate-700 font-bold">ประเภทอุปกรณ์ <span className="text-rose-500">*</span></Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2.5">
+              <Label htmlFor="equipmentType" className="text-slate-800 font-bold text-base">ประเภทอุปกรณ์ <span className="text-rose-500">*</span></Label>
               <Select
                 value={formData.equipmentTypeId}
                 onValueChange={(value) =>
@@ -194,51 +194,51 @@ export default function ReportRepair() {
                 }
                 required
               >
-                <SelectTrigger className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-11">
+                <SelectTrigger className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-12 text-base font-medium">
                   <SelectValue placeholder="เลือกประเภทอุปกรณ์" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl shadow-2xl border-2 border-slate-200">
                   {equipmentTypes.map((et) => (
-                    <SelectItem key={et.id} value={String(et.id)} className="rounded-lg">{et.name}</SelectItem>
+                    <SelectItem key={et.id} value={String(et.id)} className="rounded-lg text-base py-2.5">{et.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="equipmentModel" className="text-slate-700 font-bold">รุ่นอุปกรณ์</Label>
+            <div className="space-y-2.5">
+              <Label htmlFor="equipmentModel" className="text-slate-800 font-bold text-base">รุ่นอุปกรณ์</Label>
               <Input
                 id="equipmentModel"
                 placeholder="เช่น Dell OptiPlex 7090"
                 value={formData.equipmentModel}
                 onChange={(e) => setFormData({ ...formData, equipmentModel: e.target.value })}
-                className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-11"
+                className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-12 text-base font-medium placeholder:text-slate-400"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="serialNumber" className="text-slate-700 font-bold">Serial Number</Label>
+            <div className="space-y-2.5">
+              <Label htmlFor="serialNumber" className="text-slate-800 font-bold text-base">Serial Number</Label>
               <Input
                 id="serialNumber"
                 placeholder="หมายเลขเครื่อง (ถ้ามี)"
                 value={formData.serialNumber}
                 onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-11"
+                className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-12 text-base font-medium placeholder:text-slate-400"
               />
             </div>
           </div>
 
           {/* สถานที่ตั้ง */}
-          <div className="space-y-3">
-            <Label htmlFor="location" className="text-slate-700 font-bold">สถานที่ตั้งอุปกรณ์ <span className="text-rose-500">*</span></Label>
-            <div className="flex flex-col sm:flex-row gap-3">
+          <div className="space-y-2.5">
+            <Label htmlFor="location" className="text-slate-800 font-bold text-base">สถานที่ตั้งอุปกรณ์ <span className="text-rose-500">*</span></Label>
+            <div className="flex flex-col sm:flex-row gap-3.5">
               <Input
                 id="location"
                 placeholder="เช่น ห้องปฏิบัติการคอมพิวเตอร์ 301 อาคาร 3"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 required
-                className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-11 flex-1"
+                className="rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md h-12 text-base font-medium placeholder:text-slate-400 flex-1"
               />
               <button
                 type="button"
@@ -246,13 +246,13 @@ export default function ReportRepair() {
                   setPendingCoords(locationCoords);
                   setShowMap(true);
                 }}
-                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 font-bold transition-all shadow-md shrink-0 active:scale-95 ${
+                className={`flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl border-2 font-bold text-base transition-all shadow-md shrink-0 active:scale-95 ${
                   locationCoords
                     ? 'bg-emerald-50 border-emerald-400 text-emerald-800 shadow-emerald-500/20 hover:bg-emerald-100'
                     : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200 shadow-slate-300/40'
                 }`}
               >
-                <MapPin className={`size-4 ${locationCoords ? 'text-emerald-600' : 'text-slate-600'}`} />
+                <MapPin className={`size-5 ${locationCoords ? 'text-emerald-600' : 'text-slate-600'}`} />
                 {locationCoords
                   ? `📍 ปักหมุดแล้ว (${locationCoords.lat.toFixed(4)}, ${locationCoords.lng.toFixed(4)})`
                   : 'ปักหมุดตำแหน่งบนแผนที่'}
@@ -267,11 +267,11 @@ export default function ReportRepair() {
           }}>
             <DialogContent className="max-w-3xl w-full rounded-3xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.3)] border-2 border-slate-200">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-800">
-                  <MapPin className="size-6 text-blue-600" />
+                <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-slate-800">
+                  <MapPin className="size-7 text-blue-600" />
                   เลือกสถานที่บนแผนที่
                 </DialogTitle>
-                <DialogDescription className="text-slate-500">
+                <DialogDescription className="text-slate-500 text-base">
                   คลิกบนแผนที่เพื่อปักหมุดตำแหน่งที่ต้องการซ่อมอุปกรณ์
                 </DialogDescription>
               </DialogHeader>
@@ -284,22 +284,22 @@ export default function ReportRepair() {
                 />
               </div>
 
-              <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold shadow-inner ${
+              <div className={`flex items-center gap-2.5 px-5 py-3.5 rounded-2xl text-base font-bold shadow-inner ${
                 pendingCoords
                   ? 'bg-emerald-50 border-2 border-emerald-300 text-emerald-900'
                   : 'bg-slate-100 border-2 border-slate-200 text-slate-500'
               }`}>
-                <MapPin className="size-4 shrink-0" />
+                <MapPin className="size-5 shrink-0" />
                 {pendingCoords
                   ? `ตำแหน่งที่เลือก: ${pendingCoords.lat.toFixed(6)}, ${pendingCoords.lng.toFixed(6)}`
                   : 'ยังไม่ได้เลือกตำแหน่ง — กรุณาคลิกบนแผนที่'}
               </div>
 
-              <div className="flex justify-end gap-3 mt-2">
+              <div className="flex justify-end gap-3 mt-3">
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-xl border-2 border-slate-200 font-bold"
+                  className="rounded-xl border-2 border-slate-200 font-bold text-base h-11 px-5"
                   onClick={() => {
                     setPendingCoords(locationCoords);
                     setShowMap(false);
@@ -317,9 +317,9 @@ export default function ReportRepair() {
                     }
                     setShowMap(false);
                   }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-base rounded-xl shadow-lg shadow-blue-600/30 h-11 px-6"
                 >
-                  <MapPin className="size-4 mr-2" />
+                  <MapPin className="size-5 mr-2" />
                   ยืนยันตำแหน่ง
                 </Button>
               </div>
@@ -328,8 +328,8 @@ export default function ReportRepair() {
 
           {/* ความเร่งด่วน */}
           <div className="space-y-3">
-            <Label className="text-slate-700 font-bold">ระดับความเร่งด่วน <span className="text-rose-500">*</span></Label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Label className="text-slate-800 font-bold text-base">ระดับความเร่งด่วน <span className="text-rose-500">*</span></Label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {[
                 { value: 'medium', label: 'ปานกลาง', icon: '🟡', desc: 'ไม่เร่งด่วน ดำเนินการตามคิว', border: 'hover:border-amber-400', activeBg: 'bg-amber-50 border-amber-500 shadow-xl shadow-amber-500/25 ring-4 ring-amber-400/20' },
                 { value: 'high',   label: 'เร่งด่วน',   icon: '🟠', desc: 'กระทบการทำงาน ต้องซ่อมเร็ว', border: 'hover:border-orange-400', activeBg: 'bg-orange-50 border-orange-500 shadow-xl shadow-orange-500/25 ring-4 ring-orange-400/20' },
@@ -339,25 +339,25 @@ export default function ReportRepair() {
                   key={opt.value}
                   type="button"
                   onClick={() => setPriority(opt.value as typeof priority)}
-                  className={`flex flex-col items-center gap-1.5 p-5 rounded-2xl border-2 transition-all duration-200 text-center hover:-translate-y-1 ${
+                  className={`flex flex-col items-center gap-2 p-6 rounded-2xl border-2 transition-all duration-200 text-center hover:-translate-y-1 ${
                     priority === opt.value
                       ? opt.activeBg
                       : `border-slate-200 bg-white shadow-md hover:shadow-lg ${opt.border}`
                   }`}
                 >
-                  <span className="text-3xl filter drop-shadow-md">{opt.icon}</span>
-                  <span className={`text-base font-extrabold ${priority === opt.value ? 'text-slate-900' : 'text-slate-700'}`}>
+                  <span className="text-4xl filter drop-shadow-md">{opt.icon}</span>
+                  <span className={`text-lg font-black ${priority === opt.value ? 'text-slate-900' : 'text-slate-800'}`}>
                     {opt.label}
                   </span>
-                  <span className="text-xs text-slate-500 font-medium leading-snug">{opt.desc}</span>
+                  <span className="text-sm text-slate-500 font-semibold leading-relaxed">{opt.desc}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* อาการเสีย */}
-          <div className="space-y-2">
-            <Label htmlFor="problemDescription" className="text-slate-700 font-bold">อาการเสีย / ปัญหาที่พบ <span className="text-rose-500">*</span></Label>
+          <div className="space-y-2.5">
+            <Label htmlFor="problemDescription" className="text-slate-800 font-bold text-base">อาการเสีย / ปัญหาที่พบ <span className="text-rose-500">*</span></Label>
             <Textarea
               id="problemDescription"
               placeholder="โปรดอธิบายอาการเสียหรือปัญหาที่พบโดยละเอียด..."
@@ -365,15 +365,15 @@ export default function ReportRepair() {
               value={formData.problemDescription}
               onChange={(e) => setFormData({ ...formData, problemDescription: e.target.value })}
               required
-              className="rounded-2xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md p-4 text-slate-800 font-medium"
+              className="rounded-2xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 shadow-md p-4 text-slate-900 font-medium text-base leading-relaxed placeholder:text-slate-400"
             />
           </div>
 
           {/* อัปโหลดรูปภาพ */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="images" className="text-slate-700 font-bold">อัปโหลดรูปภาพเพิ่มเติม (สูงสุด 5 รูป)</Label>
-              <span className="text-xs font-semibold text-slate-500">ขนาดไม่เกิน 5 MB/รูป</span>
+              <Label htmlFor="images" className="text-slate-800 font-bold text-base">อัปโหลดรูปภาพเพิ่มเติม (สูงสุด 5 รูป)</Label>
+              <span className="text-sm font-bold text-slate-500">ขนาดไม่เกิน 5 MB/รูป</span>
             </div>
 
             <Input
@@ -392,16 +392,16 @@ export default function ReportRepair() {
                     <img
                       src={preview}
                       alt={`รูปภาพแนบที่ ${index + 1}`}
-                      className="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <button
                       type="button"
-                      className="absolute top-1.5 right-1.5 p-1.5 bg-rose-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 hover:bg-rose-700 transition-all"
+                      className="absolute top-2 right-2 p-1.5 bg-rose-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 hover:bg-rose-700 transition-all"
                       onClick={() => removeImage(index)}
                     >
-                      <X className="size-4" />
+                      <X className="size-5" />
                     </button>
-                    <span className="absolute bottom-1.5 left-1.5 bg-black/70 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm shadow">
+                    <span className="absolute bottom-2 left-2 bg-black/70 text-white font-mono text-xs font-bold px-2.5 py-0.5 rounded-full backdrop-blur-sm shadow">
                       {index + 1}/5
                     </span>
                   </div>
@@ -411,10 +411,10 @@ export default function ReportRepair() {
                   <button
                     type="button"
                     onClick={() => document.getElementById('images')?.click()}
-                    className="h-28 rounded-2xl border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center gap-1.5 text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 transition-all"
+                    className="h-32 rounded-2xl border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 transition-all"
                   >
-                    <Upload className="size-5" />
-                    <span className="text-xs font-bold">เพิ่มรูปภาพ</span>
+                    <Upload className="size-6" />
+                    <span className="text-sm font-bold">เพิ่มรูปภาพ</span>
                   </button>
                 )}
               </div>
@@ -423,13 +423,13 @@ export default function ReportRepair() {
                 onClick={() => document.getElementById('images')?.click()}
                 className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-8 text-center bg-slate-50/80 hover:bg-blue-50/30 cursor-pointer transition-all duration-200 group shadow-inner"
               >
-                <div className="size-12 rounded-2xl bg-white shadow-md border border-slate-200 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-3 text-slate-500 group-hover:text-blue-600 transition-colors">
-                  <ImageIcon className="size-6" />
+                <div className="size-14 rounded-2xl bg-white shadow-md border border-slate-200 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-3.5 text-slate-500 group-hover:text-blue-600 transition-colors">
+                  <ImageIcon className="size-7" />
                 </div>
-                <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                <p className="text-base font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors">
                   คลิกที่นี่เพื่อเลือกอัปโหลดรูปภาพอาการเสีย
                 </p>
-                <p className="text-xs font-medium text-slate-400 mt-1">
+                <p className="text-sm font-semibold text-slate-400 mt-1">
                   รองรับไฟล์ภาพ JPG, PNG (สูงสุด 5 รูป)
                 </p>
               </div>
@@ -437,17 +437,17 @@ export default function ReportRepair() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t-2 border-slate-100">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t-2 border-slate-100">
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold h-12 rounded-2xl shadow-xl shadow-blue-600/30 transition-all hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.99]"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-lg h-14 rounded-2xl shadow-xl shadow-blue-600/30 transition-all hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.99]"
             >
               {loading ? (
                 'กำลังส่งข้อมูล...'
               ) : (
-                <span className="flex items-center gap-2">
-                  <Send className="size-4" /> ส่งคำขอแจ้งซ่อม
+                <span className="flex items-center gap-2.5">
+                  <Send className="size-5" /> ส่งคำขอแจ้งซ่อม
                 </span>
               )}
             </Button>
@@ -462,9 +462,9 @@ export default function ReportRepair() {
                 setImages([]);
                 setImagePreviews([]);
               }}
-              className="rounded-2xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-100 shadow-md h-12 px-6"
+              className="rounded-2xl border-2 border-slate-200 text-slate-700 font-extrabold text-base hover:bg-slate-100 shadow-md h-14 px-8"
             >
-              <RotateCcw className="size-4 mr-2" /> ล้างข้อมูล
+              <RotateCcw className="size-5 mr-2" /> ล้างข้อมูล
             </Button>
           </div>
 

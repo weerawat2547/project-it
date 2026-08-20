@@ -9,25 +9,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// 🔑 1. นำ API Key ที่ได้จาก console.groq.com มาใส่ตรงนี้
-$apiKey = "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"; 
+// 🔑 1. ใส่ Groq API Key ของคุณตรงนี้ (รับฟรีได้ที่ console.groq.com)
+$apiKey = "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"; 
 
 $data = json_decode(file_get_contents("php://input"), true);
 $userMessage = $data['message'] ?? $data['prompt'] ?? '';
 
 if (empty($userMessage)) {
-    echo json_encode(["reply" => "PHP ได้รับข้อความว่างเปล่า (Empty Payload)"]);
+    echo json_encode(["reply" => "กรุณาพิมพ์ข้อความที่ต้องการสอบถามครับ"]);
     exit;
 }
 
-$systemPrompt = "คุณคือ AI ผู้ช่วยประจำระบบแจ้งซ่อมอุปกรณ์ IT ตอบอย่างสุภาพและกระชับ";
+$systemPrompt = "คุณคือ AI ผู้ช่วยประจำระบบแจ้งซ่อมอุปกรณ์ IT ตอบเป็นภาษาไทยอย่างสุภาพ กระชับ และเป็นกันเอง";
 
 $payload = [
-    "model" => "llama-3.3-70b-versatile",
+    // เปลี่ยนโมเดลเป็นรุ่นที่มีให้บริการบน Groq
+    "model" => "openai/gpt-oss-20b", 
     "messages" => [
         ["role" => "system", "content" => $systemPrompt],
         ["role" => "user", "content" => $userMessage]
-    ]
+    ],
+    "temperature" => 0.7,
+    "max_tokens" => 500
 ];
 
 $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");
@@ -45,23 +48,20 @@ $response = curl_exec($ch);
 $curlError = curl_error($ch);
 curl_close($ch);
 
-// แสดง cURL Error ออกหน้าแชท
 if ($curlError) {
-    echo json_encode(["reply" => "cURL Connection Error: " . $curlError]);
+    echo json_encode(["reply" => "การเชื่อมต่อผิดพลาด: " . $curlError]);
     exit();
 }
 
 $result = json_decode($response, true);
 
-// แสดง Groq API Error ออกหน้าแชท
 if (isset($result['error'])) {
-    echo json_encode(["reply" => "Groq API Error: " . $result['error']['message']]);
+    echo json_encode(["reply" => "เกิดข้อผิดพลาด: " . $result['error']['message']]);
     exit();
 }
 
-// ส่งคำตอบที่ได้จาก AI
 if (isset($result['choices'][0]['message']['content'])) {
     echo json_encode(["reply" => $result['choices'][0]['message']['content']]);
 } else {
-    echo json_encode(["reply" => "Groq Response Unknown Format: " . $response]);
+    echo json_encode(["reply" => "ไม่สามารถประมวลผลคำตอบได้ในขณะนี้"]);
 }

@@ -1,5 +1,4 @@
 <?php
-// 1. กำหนด CORS Header สำหรับรองรับ React Frontend
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -10,10 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// 2. ดึงไฟล์ที่เกี่ยวข้องโดยใช้อ้างอิงพาธโฟลเดอร์ปัจจุบัน (__DIR__)
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/line_notify.php';
-
+if (file_exists(__DIR__ . '/line_notify.php')) {
+    require_once __DIR__ . '/line_notify.php';
+}
 if (file_exists(__DIR__ . '/cloudinary_upload.php')) {
     require_once __DIR__ . '/cloudinary_upload.php';
 }
@@ -42,23 +41,28 @@ function getRequests() {
     $role   = $_GET['role']    ?? null;
     $id     = $_GET['id']      ?? null;
 
+    $selectFields = "r.*, 
+                     COALESCE(r.technician_notes, '') as technician_notes,
+                     COALESCE(r.technician_notes, '') as technicianNotes,
+                     COALESCE(r.technician_notes, '') as note,
+                     u.name as user_name, u.email as user_email, u.phone as user_phone, u.department,
+                     t.name as technician_name, et.name as equipment_type_name";
+
     if ($id) {
-        $stmt = $pdo->prepare("SELECT r.*, u.name as user_name, u.email as user_email, u.phone as user_phone, u.department,
-            t.name as technician_name, et.name as equipment_type_name
+        $stmt = $pdo->prepare("SELECT $selectFields
             FROM repair_requests r
             LEFT JOIN users u ON r.user_id = u.id
             LEFT JOIN users t ON r.assigned_to = t.id
             LEFT JOIN equipment_types et ON r.equipment_type_id = et.id
             WHERE r.id = ? OR r.request_no = ?");
         $stmt->execute([$id, $id]);
-        $req = $stmt->fetch();
+        $req = $stmt->fetch(PDO::FETCH_ASSOC);
         echo json_encode(["success" => true, "data" => $req]);
         return;
     }
 
     if ($role === 'student' && $userId) {
-        $stmt = $pdo->prepare("SELECT r.*, u.name as user_name, u.email as user_email, u.phone as user_phone, u.department,
-            t.name as technician_name, et.name as equipment_type_name
+        $stmt = $pdo->prepare("SELECT $selectFields
             FROM repair_requests r
             LEFT JOIN users u ON r.user_id = u.id
             LEFT JOIN users t ON r.assigned_to = t.id
@@ -66,8 +70,7 @@ function getRequests() {
             WHERE r.user_id = ? ORDER BY r.created_at DESC");
         $stmt->execute([$userId]);
     } else {
-        $stmt = $pdo->prepare("SELECT r.*, u.name as user_name, u.email as user_email, u.phone as user_phone, u.department,
-            t.name as technician_name, et.name as equipment_type_name
+        $stmt = $pdo->prepare("SELECT $selectFields
             FROM repair_requests r
             LEFT JOIN users u ON r.user_id = u.id
             LEFT JOIN users t ON r.assigned_to = t.id
@@ -76,17 +79,20 @@ function getRequests() {
         $stmt->execute();
     }
 
-    $requests = $stmt->fetchAll();
+    $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode(["success" => true, "data" => $requests]);
 }
 
 function updateOrCreateRequest() {
-    global $pdo;
-    
     $rawInput = file_get_contents("php://input");
     $data = json_decode($rawInput, true) ?? [];
+    if (empty($data)) {
+        $data = $_POST;
+    }
 
-    if (!empty($data['id']) || !empty($_POST['id'])) {
+    $id = $data['id'] ?? $_POST['id'] ?? $_GET['id'] ?? null;
+
+    if (!empty($id)) {
         updateRequest($data);
     } else {
         createRequest($data);
@@ -154,9 +160,9 @@ function createRequest(array $data) {
 function updateRequest(array $data) {
     global $pdo;
 
-    $id         = $data['id']          ?? $_POST['id']          ?? '';
-    $status     = $data['status']      ?? $_POST['status']      ?? '';
-    $assignedTo = $data['assigned_to'] ?? $data['assignedTo']   ?? $_POST['assigned_to'] ?? null;
+    $id         = $data['id']         ?? $_POST['id']         ?? '';
+    $status     = $data['status']     ?? $_POST['status']     ?? '';
+    $assignedTo = $data['assigned_to']?? $data['assignedTo']   ?? $_POST['assigned_to'] ?? null;
     $changedBy  = $data['changed_by']  ?? $data['changedBy']    ?? $_POST['changed_by']  ?? '';
 
     $technicianNotes = $data['technician_notes'] 
@@ -175,7 +181,6 @@ function updateRequest(array $data) {
         return;
     }
 
-    // ดึงสถานะเดิม
     $stmt = $pdo->prepare("SELECT status FROM repair_requests WHERE id = ? OR request_no = ?");
     $stmt->execute([$id, $id]);
     $old = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -183,18 +188,28 @@ function updateRequest(array $data) {
 
     $completedAt = ($status === 'completed') ? date('Y-m-d H:i:s') : null;
 
-    // อัปเดตข้อมูลลงฐานข้อมูล MySQL
     $stmt = $pdo->prepare("UPDATE repair_requests
-        SET status = ?, assigned_to = ?, technician_notes = ?, updated_at = NOW(), completed_at = ?
+        SET status = ?, 
+            assigned_to = ?, 
+            technician_notes = ?, 
+            updated_at = NOW(), 
+            completed_at = ?
         WHERE id = ? OR request_no = ?");
     $stmt->execute([$status, $assignedTo, $technicianNotes, $completedAt, $id, $id]);
 
-    // ส่งการแจ้งเตือน LINE Notify
     if (function_exists('notifyRepairUpdated')) {
         notifyRepairUpdated($pdo, $id, $oldStatus, $status, $changedBy, $technicianNotes);
     }
 
-    echo json_encode(["success" => true, "message" => "อัปเดตสำเร็จ"]);
+    echo json_encode([
+        "success" => true, 
+        "message" => "อัปเดตสำเร็จ",
+        "data" => [
+            "id" => $id,
+            "status" => $status,
+            "technician_notes" => $technicianNotes
+        ]
+    ]);
 }
 
 function deleteRequest() {

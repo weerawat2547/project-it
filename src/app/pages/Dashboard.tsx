@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { path: '/dashboard',           label: 'หน้าหลัก',          icon: LayoutDashboard, roles: ['student', 'technician', 'admin'] },
+  { path: '/dashboard',          label: 'หน้าหลัก',          icon: LayoutDashboard, roles: ['student', 'technician', 'admin'] },
   { path: '/dashboard/report',    label: 'แจ้งซ่อม',          icon: FileText,        roles: ['student', 'technician', 'admin'] },
   { path: '/dashboard/status',    label: 'ตรวจสอบสถานะ',       icon: Search,          roles: ['student', 'technician', 'admin'] },
   { path: '/dashboard/update',    label: 'อัปเดตการซ่อม',       icon: Settings,        roles: ['technician', 'admin'] },
@@ -59,19 +59,21 @@ export default function Dashboard() {
         style={{ background: 'radial-gradient(circle, #6366f1, transparent)', animationDelay: '3s' }}
       />
 
-      <div className="relative px-5 py-6 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="relative bg-gradient-to-br from-blue-400 to-blue-600 p-2 rounded-xl glow-blue-sm animate-pulse-ring">
-            <Wrench className="size-5 text-white" />
+      {/* Header Sidebar */}
+      <div className="relative px-6 py-6 border-b-2 border-slate-700/80">
+        <div className="flex items-center gap-3.5">
+          <div className="relative bg-gradient-to-br from-blue-400 to-blue-600 p-2.5 rounded-xl glow-blue-sm animate-pulse-ring shrink-0 border-2 border-blue-300/50">
+            <Wrench className="size-6 text-white" />
           </div>
           <div>
-            <p className="text-white font-semibold text-sm leading-tight">ระบบแจ้งซ่อม IT</p>
-            <p className="text-blue-300 text-xs">IT Support System</p>
+            <p className="text-white font-bold text-base leading-tight">ระบบแจ้งซ่อม IT</p>
+            <p className="text-blue-300 text-xs font-medium">IT Support System</p>
           </div>
         </div>
       </div>
 
-      <nav className="relative flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      {/* Navigation Links */}
+      <nav className="relative flex-1 px-3.5 py-5 space-y-2.5 overflow-y-auto">
         {filteredNav.map((item, i) => {
           const Icon    = item.icon;
           const isActive = location.pathname === item.path;
@@ -80,36 +82,37 @@ export default function Dashboard() {
               key={item.path}
               to={item.path}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group animate-slide-left ${
+              className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all duration-200 group animate-slide-left ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-900/40 glow-blue-sm'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-[0_8px_20px_rgba(37,99,235,0.45)] border-2 border-blue-300 font-bold'
+                  : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium border-2 border-transparent'
               }`}
               style={{ animationDelay: `${i * 0.05}s` }}
             >
-              <Icon className="size-4.5 shrink-0" />
-              <span className="text-sm flex-1">{item.label}</span>
-              {isActive && <ChevronRight className="size-3.5 opacity-70" />}
+              <Icon className="size-6 shrink-0" />
+              <span className="text-base flex-1">{item.label}</span>
+              {isActive && <ChevronRight className="size-4 opacity-100 font-bold" />}
             </Link>
           );
         })}
       </nav>
 
-      <div className="relative px-4 py-4 border-t border-white/10">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="size-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg">
+      {/* User Profile */}
+      <div className="relative px-5 py-5 border-t-2 border-slate-700/80 bg-slate-900/60">
+        <div className="flex items-center gap-3.5 mb-3.5">
+          <div className="size-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-base shrink-0 shadow-md border-2 border-white/40">
             {avatarLetter}
           </div>
           <div className="min-w-0">
-            <p className="text-white text-sm font-medium truncate">{currentUser.name}</p>
-            <p className="text-blue-300 text-xs">{roleLabel}</p>
+            <p className="text-white text-base font-semibold truncate">{currentUser.name}</p>
+            <p className="text-blue-300 text-xs font-medium">{roleLabel}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all text-sm group"
+          className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 text-slate-300 hover:text-white hover:bg-red-500/20 rounded-xl transition-all text-sm font-semibold group border-2 border-red-500/30 hover:border-red-500/60 cursor-pointer"
         >
-          <LogOut className="size-4 group-hover:translate-x-0.5 transition-transform" />
+          <LogOut className="size-4.5 group-hover:translate-x-0.5 transition-transform" />
           ออกจากระบบ
         </button>
       </div>
@@ -117,63 +120,61 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f0f4f8] flex relative">
+    <div className="min-h-screen bg-[#e2e8f0] flex relative">
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col w-60 bg-[#0a1628] shrink-0 fixed left-0 top-0 h-full z-20">
+      <aside className="hidden md:flex flex-col w-64 bg-[#0a1628] shrink-0 fixed left-0 top-0 h-full z-20 border-r-4 border-slate-800 shadow-[8px_0_25px_rgba(0,0,0,0.3)]">
         <SidebarContent />
       </aside>
 
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 bg-black/70 z-30 md:hidden backdrop-blur-sm animate-fade-in"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar Mobile */}
       <aside
-        className={`fixed left-0 top-0 h-full w-64 bg-[#0a1628] z-40 md:hidden transform transition-transform duration-300 ${
+        className={`fixed left-0 top-0 h-full w-72 bg-[#0a1628] z-40 md:hidden transform transition-transform duration-300 shadow-2xl border-r-4 border-slate-800 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <button
           onClick={() => setMobileOpen(false)}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white z-10"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white z-10 cursor-pointer"
         >
-          <X className="size-5" />
+          <X className="size-6" />
         </button>
         <SidebarContent />
       </aside>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col md:ml-60 relative min-h-screen">
-        
-        {/* ลายพื้นหลังเครื่องมือการ์ตูน */}
+      <div className="flex-1 flex flex-col md:ml-64 relative min-h-screen">
         <div 
-          className="absolute inset-0 pointer-events-none z-0 opacity-25 bg-repeat bg-[length:220px_220px] filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]"
+          className="absolute inset-0 pointer-events-none z-0 opacity-15 bg-repeat bg-[length:220px_220px]"
           style={{ backgroundImage: `url('/tools.png')` }}
         />
 
-        <header className="md:hidden bg-[#0a1628] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 border-b border-white/10">
+        <header className="md:hidden bg-[#0a1628] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 border-b-4 border-slate-800 shadow-xl">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMobileOpen(true)} className="text-white">
+            <button onClick={() => setMobileOpen(true)} className="text-white cursor-pointer">
               <Menu className="size-6" />
             </button>
             <div className="flex items-center gap-2">
-              <Wrench className="size-4.5 text-blue-400" />
-              <span className="font-semibold text-sm">ระบบแจ้งซ่อม IT</span>
+              <Wrench className="size-5 text-blue-400" />
+              <span className="font-semibold text-base">ระบบแจ้งซ่อม IT</span>
             </div>
           </div>
-          <div className="size-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+          <div className="size-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm border-2 border-white/40">
             {avatarLetter}
           </div>
         </header>
 
-        {/* 🚀 ใส่ key={location.pathname} เพื่อเล่นอนิเมชัน animate-fade-in-up ทุกครั้งที่เปลี่ยนหน้า */}
+        {/* Clean Main Content Area - นำ Selector บีบขอบที่รบกวนหน้าอื่นออก */}
         <main 
           key={location.pathname} 
-          className="flex-1 p-5 md:p-7 animate-fade-in-up relative z-10"
+          className="flex-1 p-4 md:p-8 animate-fade-in-up relative z-10 w-full"
         >
           <Outlet />
         </main>
