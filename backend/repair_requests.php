@@ -209,10 +209,6 @@ function createRequest(array $data) {
     }
 }
 
-function uploadBase64ToCloudinary(string $base64String, string $folder = 'it_repair_completed'): ?string {
-    if (!function_exists('uploadToCloudinary')) return null;
-    return uploadToCloudinary($base64String, $folder);
-}
 
 function updateRequest(array $data) {
     global $pdo;
