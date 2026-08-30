@@ -23,7 +23,9 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
     $validUrls = [];
     foreach ($imageUrls as $url) {
         if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
-            $validUrls[] = $url;
+            // LINE API บังคับให้เป็น HTTPS เท่านั้น หาก Cloudinary คืนค่า HTTP ต้องแปลงก่อน ไม่งั้น LINE จะไม่ส่งข้อความเลย!
+            $secureUrl = str_replace('http://', 'https://', $url);
+            $validUrls[] = $secureUrl;
         }
     }
 
@@ -49,6 +51,7 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
         CURLOPT_POST           => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_TIMEOUT        => 5,
         CURLOPT_POSTFIELDS     => json_encode(["to" => $userId, "messages" => $messages]),
         CURLOPT_HTTPHEADER     => [
             "Content-Type: application/json",
@@ -75,6 +78,7 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
             CURLOPT_POST           => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_TIMEOUT        => 5,
             CURLOPT_POSTFIELDS     => json_encode(["to" => $userId, "messages" => $extraMessages]),
             CURLOPT_HTTPHEADER     => [
                 "Content-Type: application/json",

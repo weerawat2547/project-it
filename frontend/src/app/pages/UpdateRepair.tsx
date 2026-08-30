@@ -333,7 +333,7 @@ export default function UpdateRepair() {
                 <Button variant="outline" className="w-full h-20 rounded-xl border-dashed" onClick={() => document.getElementById('repair_img')?.click()}>
                     <Camera className="mr-2"/> คลิกเพื่ออัปโหลดรูปผลงาน
                 </Button>
-                <input type="file" id="repair_img" className="hidden" multiple accept="image/*" onChange={async (e) => {
+                <input type="file" id="repair_img" className="hidden" multiple accept="image/jpeg, image/png, image/webp" onChange={async (e) => {
                     if (e.target.files) {
                         const files = Array.from(e.target.files);
                         for (const file of files) {
