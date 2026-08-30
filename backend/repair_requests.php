@@ -350,10 +350,12 @@ function updateRequest(array $data) {
     $params[] = $id;
     $params[] = $id;
 
+    $dbError = null;
     try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
     } catch (Throwable $dbErr) {
+        $dbError = $dbErr->getMessage();
         try {
             $sqlFallback = "UPDATE repair_requests SET status = ?, technician_notes = ?, status_history = ?, updated_at = NOW() WHERE id = ? OR request_no = ?";
             $stmtFB = $pdo->prepare($sqlFallback);
@@ -373,6 +375,7 @@ function updateRequest(array $data) {
     echo json_encode([
         "success" => true, 
         "message" => "อัปเดตสำเร็จ",
+        "db_error" => $dbError,
         "data" => [
             "id" => $id,
             "status" => $status,

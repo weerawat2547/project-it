@@ -101,9 +101,16 @@ function notifyRepairCreated(PDO $pdo, array $request): void {
     $msg .= "ความเร่งด่วน: " . priorityLabel($request['priority']) . "\n";
 
     if (!empty($request['image_urls'])) {
-        $msg .= "📷 รูปภาพ (" . count($request['image_urls']) . " รูป):\n";
+        $hasUrl = false;
+        $urlLines = "";
         foreach ($request['image_urls'] as $i => $url) {
-            $msg .= "รูปที่ " . ($i + 1) . ": {$url}\n";
+            if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
+                $urlLines .= "รูปที่ " . ($i + 1) . ": {$url}\n";
+                $hasUrl = true;
+            }
+        }
+        if ($hasUrl) {
+            $msg .= "📷 รูปภาพแนบ:\n" . $urlLines;
         }
     }
 
@@ -206,17 +213,31 @@ function notifyRepairUpdated(
 
     // แสดงรายการรูปภาพก่อนซ่อม (Before)
     if (!empty($beforeImages)) {
-        $msg .= "\n📷 รูปภาพก่อนซ่อม (Before):\n";
+        $hasUrl = false;
+        $urlLines = "";
         foreach ($beforeImages as $i => $url) {
-            $msg .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
+            if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
+                $urlLines .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
+                $hasUrl = true;
+            }
+        }
+        if ($hasUrl) {
+            $msg .= "\n📷 รูปภาพก่อนซ่อม (Before):\n" . $urlLines;
         }
     }
 
     // แสดงรายการรูปภาพหลังซ่อมเสร็จ (After)
     if (!empty($afterImages)) {
-        $msg .= "\n📸 รูปภาพหลังซ่อมเสร็จ (After):\n";
+        $hasUrl = false;
+        $urlLines = "";
         foreach ($afterImages as $i => $url) {
-            $msg .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
+            if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
+                $urlLines .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
+                $hasUrl = true;
+            }
+        }
+        if ($hasUrl) {
+            $msg .= "\n📸 รูปภาพหลังซ่อมเสร็จ (After):\n" . $urlLines;
         }
     }
 
