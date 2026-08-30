@@ -473,7 +473,7 @@ const compressImage = (file: File): Promise<string> => {
             <Input
               id="images"
               type="file"
-              accept="image/jpeg, image/png, image/webp"
+              accept="image/*"
               multiple
               onChange={handleImageUpload}
               className="hidden"

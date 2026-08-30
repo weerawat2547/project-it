@@ -125,17 +125,17 @@ function createRequest(array $data) {
         }
     }
 
-    // รองรับการอัปโหลดแบบ JSON Base64 (สูงสุด 5 รูป พร้อมกันด้วย Multi-cURL)
+    // รองรับการอัปโหลดแบบ JSON Base64 (สูงสุด 5 รูป)
     if (!empty($data['images_base64']) && is_array($data['images_base64'])) {
         @set_time_limit(60);
-        if (function_exists('uploadMultipleToCloudinary')) {
-            $imageUrls = array_merge($imageUrls, uploadMultipleToCloudinary($data['images_base64'], 'it_repair'));
-        } else {
-            foreach ($data['images_base64'] as $base64) {
-                if (empty($base64)) continue;
-                $url = function_exists('uploadBase64ToCloudinary') ? uploadBase64ToCloudinary($base64, 'it_repair') : null;
-                $imageUrls[] = $url ?: $base64;
+        foreach ($data['images_base64'] as $base64) {
+            if (empty($base64)) continue;
+            $url = null;
+            if (function_exists('uploadBase64ToCloudinary')) {
+                $url = uploadBase64ToCloudinary($base64, 'it_repair');
             }
+            // ถ้าอัปโหลดขึ้น Cloudinary สำเร็จใช้ URL ถ้าไม่สำเร็จเก็บ Base64 ลง DB รับประกันรูปไม่หาย 100%
+            $imageUrls[] = $url ?: $base64;
         }
     }
 
@@ -209,6 +209,10 @@ function createRequest(array $data) {
     }
 }
 
+function uploadBase64ToCloudinary(string $base64String, string $folder = 'it_repair_completed'): ?string {
+    if (!function_exists('uploadToCloudinary')) return null;
+    return uploadToCloudinary($base64String, $folder);
+}
 
 function updateRequest(array $data) {
     global $pdo;
@@ -260,7 +264,7 @@ function updateRequest(array $data) {
         }
     }
 
-    // 2. อัปโหลดรูปภาพ Base64 หรือ Cloudinary URL ใน after_images เข้า Cloudinary (Parallel Multi-cURL)
+    // 2. อัปโหลดรูปภาพ Base64 หรือ Cloudinary URL ใน after_images เข้า Cloudinary
     $afterImagesRaw = $data['after_images'] ?? $data['after_repair_images'] ?? $_POST['after_images'] ?? null;
     if ($afterImagesRaw !== null) {
         $afterArr = [];
@@ -271,16 +275,16 @@ function updateRequest(array $data) {
             $afterArr = is_array($decoded) ? $decoded : [$afterImagesRaw];
         }
 
-        if (function_exists('uploadMultipleToCloudinary')) {
-            $uploadedCloudinaryUrls = array_merge($uploadedCloudinaryUrls, uploadMultipleToCloudinary($afterArr, 'it_repair_completed'));
-        } else {
-            foreach ($afterArr as $imgItem) {
-                if (is_string($imgItem) && trim($imgItem) !== '') {
-                    if (str_starts_with($imgItem, 'http://') || str_starts_with($imgItem, 'https://')) {
-                        $uploadedCloudinaryUrls[] = $imgItem;
+        foreach ($afterArr as $imgItem) {
+            if (is_string($imgItem) && trim($imgItem) !== '') {
+                if (str_starts_with($imgItem, 'http://') || str_starts_with($imgItem, 'https://')) {
+                    $uploadedCloudinaryUrls[] = $imgItem;
+                } else {
+                    $cUrl = uploadBase64ToCloudinary($imgItem, 'it_repair_completed');
+                    if ($cUrl) {
+                        $uploadedCloudinaryUrls[] = $cUrl;
                     } else {
-                        $cUrl = function_exists('uploadBase64ToCloudinary') ? uploadBase64ToCloudinary($imgItem, 'it_repair_completed') : null;
-                        $uploadedCloudinaryUrls[] = $cUrl ?: $imgItem;
+                        $uploadedCloudinaryUrls[] = $imgItem;
                     }
                 }
             }
@@ -291,23 +295,13 @@ function updateRequest(array $data) {
     $afterImagesJson = !empty($uploadedCloudinaryUrls) ? json_encode($uploadedCloudinaryUrls) : null;
     $repairImageUrl = !empty($uploadedCloudinaryUrls) ? $uploadedCloudinaryUrls[0] : null;
 
-    // ตรวจสอบคอลัมน์อย่างรวดเร็วก่อน (เพื่อป้องกันการทำ ALTER TABLE ซ้ำซ้อนซึ่งทำให้ Timeout)
+    // ตรวจสอบและสร้างคอลัมน์ after_images / repair_image ใน DB หากยังไม่มี
     try {
-        $pdo->query("SELECT technician_notes, status_history, after_images, repair_image, completed_at FROM repair_requests LIMIT 1");
-    } catch (Throwable $e) {
-        // ถ้ายิง Query แล้ว Error แสดงว่าคอลัมน์ยังไม่ครบ ให้สร้างคอลัมน์ทั้งหมดแบบรวบยอดในคำสั่งเดียวเพื่อความรวดเร็ว
-        try {
-            $pdo->exec("
-                ALTER TABLE repair_requests 
-                ADD COLUMN IF NOT EXISTS technician_notes TEXT NULL,
-                ADD COLUMN IF NOT EXISTS status_history LONGTEXT NULL,
-                ADD COLUMN IF NOT EXISTS after_images LONGTEXT NULL,
-                ADD COLUMN IF NOT EXISTS repair_image TEXT NULL,
-                ADD COLUMN IF NOT EXISTS completed_at DATETIME NULL,
-                ADD COLUMN IF NOT EXISTS updated_at DATETIME NULL
-            ");
-        } catch (Throwable $ex) {}
-    }
+        $pdo->exec("ALTER TABLE repair_requests ADD COLUMN after_images LONGTEXT NULL");
+    } catch (Throwable $e) {}
+    try {
+        $pdo->exec("ALTER TABLE repair_requests ADD COLUMN repair_image TEXT NULL");
+    } catch (Throwable $e) {}
 
     @set_time_limit(60);
 
@@ -346,12 +340,10 @@ function updateRequest(array $data) {
     $params[] = $id;
     $params[] = $id;
 
-    $dbError = null;
     try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
     } catch (Throwable $dbErr) {
-        $dbError = $dbErr->getMessage();
         try {
             $sqlFallback = "UPDATE repair_requests SET status = ?, technician_notes = ?, status_history = ?, updated_at = NOW() WHERE id = ? OR request_no = ?";
             $stmtFB = $pdo->prepare($sqlFallback);
@@ -371,7 +363,6 @@ function updateRequest(array $data) {
     echo json_encode([
         "success" => true, 
         "message" => "อัปเดตสำเร็จ",
-        "db_error" => $dbError,
         "data" => [
             "id" => $id,
             "status" => $status,

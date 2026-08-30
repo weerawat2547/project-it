@@ -23,9 +23,7 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
     $validUrls = [];
     foreach ($imageUrls as $url) {
         if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
-            // LINE API บังคับให้เป็น HTTPS เท่านั้น หาก Cloudinary คืนค่า HTTP ต้องแปลงก่อน ไม่งั้น LINE จะไม่ส่งข้อความเลย!
-            $secureUrl = str_replace('http://', 'https://', $url);
-            $validUrls[] = $secureUrl;
+            $validUrls[] = $url;
         }
     }
 
@@ -51,7 +49,6 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
         CURLOPT_POST           => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_TIMEOUT        => 5,
         CURLOPT_POSTFIELDS     => json_encode(["to" => $userId, "messages" => $messages]),
         CURLOPT_HTTPHEADER     => [
             "Content-Type: application/json",
@@ -78,7 +75,6 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
             CURLOPT_POST           => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_TIMEOUT        => 5,
             CURLOPT_POSTFIELDS     => json_encode(["to" => $userId, "messages" => $extraMessages]),
             CURLOPT_HTTPHEADER     => [
                 "Content-Type: application/json",
@@ -101,16 +97,9 @@ function notifyRepairCreated(PDO $pdo, array $request): void {
     $msg .= "ความเร่งด่วน: " . priorityLabel($request['priority']) . "\n";
 
     if (!empty($request['image_urls'])) {
-        $hasUrl = false;
-        $urlLines = "";
+        $msg .= "📷 รูปภาพ (" . count($request['image_urls']) . " รูป):\n";
         foreach ($request['image_urls'] as $i => $url) {
-            if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
-                $urlLines .= "รูปที่ " . ($i + 1) . ": {$url}\n";
-                $hasUrl = true;
-            }
-        }
-        if ($hasUrl) {
-            $msg .= "📷 รูปภาพแนบ:\n" . $urlLines;
+            $msg .= "รูปที่ " . ($i + 1) . ": {$url}\n";
         }
     }
 
@@ -213,39 +202,25 @@ function notifyRepairUpdated(
 
     // แสดงรายการรูปภาพก่อนซ่อม (Before)
     if (!empty($beforeImages)) {
-        $hasUrl = false;
-        $urlLines = "";
+        $msg .= "\n📷 รูปภาพก่อนซ่อม (Before):\n";
         foreach ($beforeImages as $i => $url) {
-            if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
-                $urlLines .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
-                $hasUrl = true;
-            }
-        }
-        if ($hasUrl) {
-            $msg .= "\n📷 รูปภาพก่อนซ่อม (Before):\n" . $urlLines;
+            $msg .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
         }
     }
 
     // แสดงรายการรูปภาพหลังซ่อมเสร็จ (After)
     if (!empty($afterImages)) {
-        $hasUrl = false;
-        $urlLines = "";
+        $msg .= "\n📸 รูปภาพหลังซ่อมเสร็จ (After):\n";
         foreach ($afterImages as $i => $url) {
-            if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
-                $urlLines .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
-                $hasUrl = true;
-            }
-        }
-        if ($hasUrl) {
-            $msg .= "\n📸 รูปภาพหลังซ่อมเสร็จ (After):\n" . $urlLines;
+            $msg .= "- รูปที่ " . ($i + 1) . ": {$url}\n";
         }
     }
 
     $msg .= "\nเวลา: " . date('d/m/Y H:i');
 
-    // รวบรวมรูปภาพ HTTP/HTTPS สำหรับแนบเข้า LINE Image Messages (นำรูปผลงานหลังซ่อมขึ้นก่อน)
+    // รวบรวมรูปภาพ HTTP/HTTPS สำหรับแนบเข้า LINE Image Messages
     $onlineImageUrls = [];
-    foreach (array_merge((array)$afterImages, (array)$beforeImages) as $imgUrl) {
+    foreach (array_merge((array)$beforeImages, (array)$afterImages) as $imgUrl) {
         if (is_string($imgUrl) && (str_starts_with($imgUrl, 'http://') || str_starts_with($imgUrl, 'https://'))) {
             $onlineImageUrls[] = $imgUrl;
         }
