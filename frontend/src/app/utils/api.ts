@@ -44,7 +44,7 @@ export const repairApi = {
     }),
   update: (payload: any) =>
     request<{ success: boolean }>('/repair_requests.php', {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify(payload),
     }),
   delete: (id: string) =>

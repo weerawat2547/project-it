@@ -132,37 +132,40 @@ export default function UpdateRepair() {
         console.warn("Backend API update fallback to local:", apiErr);
       }
       
-      // 2. อัปเดตข้อมูลใน localStorage
-      const localData = localStorage.getItem('repair_requests_data');
-      let currentRequests = localData ? JSON.parse(localData) : [];
+      // 2. อัปเดตข้อมูลใน localStorage อย่างปลอดภัย (ป้องกัน QuotaExceededError)
+      try {
+        const localData = localStorage.getItem('repair_requests_data');
+        let currentRequests = localData ? JSON.parse(localData) : [];
 
-      const updated = currentRequests.map((req: any) => {
-        if (String(req.id) === String(selectedRequest.id) || String(req.request_no) === String(selectedRequest.request_no)) {
-          const history = req.status_history ? (typeof req.status_history === 'string' ? JSON.parse(req.status_history) : req.status_history) : [];
-          history.push({
-            status: updateData.status,
-            note: updateData.technicianNotes,
-            updated_at: now,
-            updated_by: technicianName
-          });
+        const updated = currentRequests.map((req: any) => {
+          if (String(req.id) === String(selectedRequest.id) || String(req.request_no) === String(selectedRequest.request_no)) {
+            const history = req.status_history ? (typeof req.status_history === 'string' ? JSON.parse(req.status_history) : req.status_history) : [];
+            history.push({
+              status: updateData.status,
+              note: updateData.technicianNotes,
+              updated_at: now,
+              updated_by: technicianName
+            });
 
-          return {
-            ...req,
-            status: updateData.status,
-            technician_notes: updateData.technicianNotes,
-            technician: technicianName,
-            after_images: JSON.stringify(finalAfterImages),
-            after_repair_images: JSON.stringify(finalAfterImages),
-            afterImages: JSON.stringify(finalAfterImages),
-            status_history: JSON.stringify(history),
-            updated_at: now
-          };
-        }
-        return req;
-      });
+            return {
+              ...req,
+              status: updateData.status,
+              technician_notes: updateData.technicianNotes,
+              technician: technicianName,
+              after_images: JSON.stringify(finalAfterImages.slice(0, 2)), // เก็บตัวอย่าง 2 รูปใน cache
+              after_repair_images: JSON.stringify(finalAfterImages.slice(0, 2)),
+              status_history: JSON.stringify(history),
+              updated_at: now
+            };
+          }
+          return req;
+        });
 
-      localStorage.setItem('repair_requests_data', JSON.stringify(updated));
-      setRequests(updated);
+        localStorage.setItem('repair_requests_data', JSON.stringify(updated.slice(0, 20)));
+        setRequests(updated);
+      } catch (storageErr) {
+        console.warn("LocalStorage quota error in UpdateRepair:", storageErr);
+      }
 
       // 3. ยิง LINE Notify อัปเดตสถานะพร้อมแนบ Cloudinary URL
       try {
@@ -171,11 +174,11 @@ export default function UpdateRepair() {
         console.warn("LINE Notification non-fatal error:", lineErr);
       }
 
-      toast.success('อัปเดตสถานะและอัปโหลดรูปผลงานขึ้น Cloudinary เรียบร้อยแล้ว');
+      toast.success('อัปเดตสถานะและอัปโหลดรูปผลงานเรียบร้อยแล้ว');
       setDialogOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Save error:", err);
-      toast.error('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+      toast.error(err?.message || 'เกิดข้อผิดพลาดในการอัปเดตสถานะ');
     }
   };
 
@@ -346,7 +349,7 @@ export default function UpdateRepair() {
                                         const img = new Image();
                                         img.onload = () => {
                                             const canvas = document.createElement('canvas');
-                                            const MAX_DIM = 1280;
+                                            const MAX_DIM = 800;
                                             let width = img.width;
                                             let height = img.height;
                                             if (width > height) {
@@ -356,7 +359,7 @@ export default function UpdateRepair() {
                                             }
                                             canvas.width = width; canvas.height = height;
                                             const ctx = canvas.getContext('2d');
-                                            if (ctx) { ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.75)); }
+                                            if (ctx) { ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.6)); }
                                             else { resolve(ev.target?.result as string); }
                                         };
                                         img.onerror = () => resolve(ev.target?.result as string);
