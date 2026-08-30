@@ -162,14 +162,7 @@ const compressImage = (file: File): Promise<string> => {
         images_base64: imagePreviews // ส่งรูปเป็น Base64 array ตรงๆ
       };
 
-      const res = await fetch(`${BASE_URL}/repair_requests.php`, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload),
-      }).then(r => r.json());
+      const res: any = await repairApi.create(payload);
 
       if (res && res.success === false) {
         throw new Error(res.message || 'Server returned an error');

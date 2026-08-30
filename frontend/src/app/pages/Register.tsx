@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { Wrench, AlertCircle, CheckCircle, Eye, EyeOff, ArrowRight, Sparkles, CheckCircle2, User, KeyRound, Mail, Phone, Building2, IdCard } from 'lucide-react';
 import { mockUsers } from '../utils/mockData';
 import { User as UserType } from '../types';
-import { BASE_URL } from '../utils/api';
+import { BASE_URL, usersApi } from '../utils/api';
 
 function Field({
   id, label, type = 'text', placeholder, value, onChange, required = false, rightEl, icon: Icon,
@@ -87,10 +87,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/register.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const res: any = await usersApi.register({
           username:   formData.username,
           password:   formData.password,
           name:       formData.name,
@@ -98,10 +95,8 @@ export default function Register() {
           phone:      formData.phone,
           department: formData.department,
           student_id: formData.student_id,
-        }),
       });
-      const result = await res.json();
-      if (result.success) {
+      if (res && res.success) {
         setSuccess(true);
         setTimeout(() => navigate('/'), 1800);
       } else {

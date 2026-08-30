@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { Wrench, AlertCircle, Eye, EyeOff, ArrowRight, ChevronDown, Shield, Clock, Star, Sparkles, KeyRound, UserCheck } from 'lucide-react';
 import { mockUsers } from '../utils/mockData';
-import { BASE_URL } from '../utils/api';
+import { BASE_URL, usersApi } from '../utils/api';
 
 const TEST_ACCOUNTS = [
   { role: 'ผู้ดูแลระบบ (Admin)', username: 'admin', password: 'admin123', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -36,18 +36,13 @@ export default function Login() {
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/login.php`, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        localStorage.setItem('currentUser', JSON.stringify(result.user));
+      const res: any = await usersApi.login(username, password);
+
+      if (res && res.success) {
+        localStorage.setItem('currentUser', JSON.stringify(res.user));
         navigate('/dashboard');
       } else {
-        setError(result.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+        setError(res.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
       }
     } catch {
       setError('เชื่อมต่อ XAMPP ไม่ได้ — กรุณาตรวจสอบว่า Apache และ MySQL เปิดอยู่');
