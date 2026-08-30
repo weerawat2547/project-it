@@ -110,6 +110,8 @@ function createRequest(array $data) {
     }
 
     $imageUrls = [];
+    
+    // รองรับการอัปโหลดแบบ FormData (ถ้ามี)
     if (!empty($_FILES['images'])) {
         $files = $_FILES['images'];
         $count = is_array($files['tmp_name']) ? count($files['tmp_name']) : 1;
@@ -118,6 +120,16 @@ function createRequest(array $data) {
             $error   = is_array($files['error'])    ? $files['error'][$i]    : $files['error'];
             if ($error === UPLOAD_ERR_OK && function_exists('uploadToCloudinary')) {
                 $url = uploadToCloudinary($tmpName, 'it_repair');
+                if ($url) $imageUrls[] = $url;
+            }
+        }
+    }
+
+    // รองรับการอัปโหลดแบบ JSON Base64
+    if (!empty($data['images_base64']) && is_array($data['images_base64'])) {
+        foreach ($data['images_base64'] as $base64) {
+            if (function_exists('uploadBase64ToCloudinary')) {
+                $url = uploadBase64ToCloudinary($base64, 'it_repair');
                 if ($url) $imageUrls[] = $url;
             }
         }

@@ -100,20 +100,24 @@ export default function ReportRepair() {
     setLoading(true);
 
     try {
-      // 1. ส่งข้อมูลผ่าน API เพื่อบันทึก DB และยิง LINE Notify
-      const fd = new FormData();
-      fd.append('user_id', currentUser.id);
-      fd.append('equipment_type_id', formData.equipmentTypeId || '');
-      fd.append('equipment_model', formData.equipmentModel);
-      fd.append('serial_number', formData.serialNumber);
-      fd.append('location_description', formData.location);
-      fd.append('problem_description', formData.problemDescription);
-      fd.append('priority', priority);
-      images.forEach((img) => fd.append('images[]', img));
+      // 1. ส่งข้อมูลผ่าน API ด้วย JSON แทน FormData เพื่อหลีกเลี่ยงการโดนบล็อก
+      const payload = {
+        user_id: currentUser.id,
+        equipment_type_id: formData.equipmentTypeId || '',
+        equipment_model: formData.equipmentModel,
+        serial_number: formData.serialNumber,
+        location_description: formData.location,
+        problem_description: formData.problemDescription,
+        priority: priority,
+        images_base64: imagePreviews // ส่งรูปเป็น Base64 array ตรงๆ
+      };
 
       const res = await fetch(`${BASE_URL}/repair_requests.php`, {
         method: 'POST',
-        body: fd,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
       }).then(r => r.json());
 
       if (res && res.success === false) {
