@@ -125,17 +125,17 @@ function createRequest(array $data) {
         }
     }
 
-    // รองรับการอัปโหลดแบบ JSON Base64 (สูงสุด 5 รูป)
+    // รองรับการอัปโหลดแบบ JSON Base64 (สูงสุด 5 รูป พร้อมกันด้วย Multi-cURL)
     if (!empty($data['images_base64']) && is_array($data['images_base64'])) {
         @set_time_limit(60);
-        foreach ($data['images_base64'] as $base64) {
-            if (empty($base64)) continue;
-            $url = null;
-            if (function_exists('uploadBase64ToCloudinary')) {
-                $url = uploadBase64ToCloudinary($base64, 'it_repair');
+        if (function_exists('uploadMultipleToCloudinary')) {
+            $imageUrls = array_merge($imageUrls, uploadMultipleToCloudinary($data['images_base64'], 'it_repair'));
+        } else {
+            foreach ($data['images_base64'] as $base64) {
+                if (empty($base64)) continue;
+                $url = function_exists('uploadBase64ToCloudinary') ? uploadBase64ToCloudinary($base64, 'it_repair') : null;
+                $imageUrls[] = $url ?: $base64;
             }
-            // ถ้าอัปโหลดขึ้น Cloudinary สำเร็จใช้ URL ถ้าไม่สำเร็จเก็บ Base64 ลง DB รับประกันรูปไม่หาย 100%
-            $imageUrls[] = $url ?: $base64;
         }
     }
 
@@ -264,7 +264,7 @@ function updateRequest(array $data) {
         }
     }
 
-    // 2. อัปโหลดรูปภาพ Base64 หรือ Cloudinary URL ใน after_images เข้า Cloudinary
+    // 2. อัปโหลดรูปภาพ Base64 หรือ Cloudinary URL ใน after_images เข้า Cloudinary (Parallel Multi-cURL)
     $afterImagesRaw = $data['after_images'] ?? $data['after_repair_images'] ?? $_POST['after_images'] ?? null;
     if ($afterImagesRaw !== null) {
         $afterArr = [];
@@ -275,16 +275,16 @@ function updateRequest(array $data) {
             $afterArr = is_array($decoded) ? $decoded : [$afterImagesRaw];
         }
 
-        foreach ($afterArr as $imgItem) {
-            if (is_string($imgItem) && trim($imgItem) !== '') {
-                if (str_starts_with($imgItem, 'http://') || str_starts_with($imgItem, 'https://')) {
-                    $uploadedCloudinaryUrls[] = $imgItem;
-                } else {
-                    $cUrl = uploadBase64ToCloudinary($imgItem, 'it_repair_completed');
-                    if ($cUrl) {
-                        $uploadedCloudinaryUrls[] = $cUrl;
-                    } else {
+        if (function_exists('uploadMultipleToCloudinary')) {
+            $uploadedCloudinaryUrls = array_merge($uploadedCloudinaryUrls, uploadMultipleToCloudinary($afterArr, 'it_repair_completed'));
+        } else {
+            foreach ($afterArr as $imgItem) {
+                if (is_string($imgItem) && trim($imgItem) !== '') {
+                    if (str_starts_with($imgItem, 'http://') || str_starts_with($imgItem, 'https://')) {
                         $uploadedCloudinaryUrls[] = $imgItem;
+                    } else {
+                        $cUrl = function_exists('uploadBase64ToCloudinary') ? uploadBase64ToCloudinary($imgItem, 'it_repair_completed') : null;
+                        $uploadedCloudinaryUrls[] = $cUrl ?: $imgItem;
                     }
                 }
             }
