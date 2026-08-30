@@ -39,36 +39,16 @@ export default function CheckStatus() {
     const userStr = localStorage.getItem('currentUser');
     const user = userStr ? JSON.parse(userStr) : null;
     if (user) setCurrentUser(user);
-
-    const savedData = localStorage.getItem('repair_requests_data');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const userRequests = user?.role === 'student' 
-            ? parsed.filter((r: any) => r.userId === user.id) 
-            : parsed;
-          setRequests(userRequests);
-          setLoading(false);
-          return;
-        }
-      } catch (e) {
-        console.error("Error parsing local data", e);
-      }
-    }
     
-    // Fallback: หากไม่มีข้อมูลใน LocalStorage ให้โหลดจาก API
-    if (user) loadRequests(user);
-    else setLoading(false);
+    loadRequests(user);
   }, []);
 
-  const loadRequests = async (user: UserType) => {
+  const loadRequests = async (user: UserType | null) => {
     setLoading(true);
     try {
-      const res = await repairApi.getAll(user.id, user.role);
-      const allRequests = res.data;
-      // กรองสำหรับนักศึกษา
-      const userRequests = user.role === 'student' 
+      const res = await repairApi.getAll(user?.id, user?.role);
+      const allRequests = res.data || [];
+      const userRequests = user?.role === 'student' 
           ? allRequests.filter((r: any) => 
               r.userId === user.id || 
               r.user_name === user.name ||
@@ -76,7 +56,6 @@ export default function CheckStatus() {
             ) 
           : allRequests;
       setRequests(userRequests);
-      localStorage.setItem('repair_requests_data', JSON.stringify(allRequests));
     } catch (error) {
       console.error("Failed to load requests", error);
       setRequests([]);

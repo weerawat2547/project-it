@@ -79,6 +79,35 @@ export default function UpdateRepair() {
     }
   };
 
+  const handleSaveStatus = async () => {
+    try {
+      if (!selectedRequest) return;
+      
+      let finalAfterImages = repairImages.map(img => img.preview);
+      const technicianName = currentUser?.name || 'ช่างเทคนิค';
+
+      // 1. ส่งอัปเดตไป API (Backend จะส่ง LINE Notify และเก็บรูปลง Cloudinary ให้อัตโนมัติ)
+      const apiRes: any = await repairApi.update({
+        id: selectedRequest.id || selectedRequest.request_no,
+        status: updateData.status,
+        technician_notes: updateData.technicianNotes,
+        after_images: finalAfterImages,
+        after_repair_images: finalAfterImages,
+        changed_by: currentUser?.id || currentUser?.name || 'ช่างเทคนิค',
+        technician_name: technicianName
+      });
+
+      // 2. รีโหลดข้อมูลจาก API ใหม่ เพื่อให้เห็นข้อมูลปัจจุบันทันที
+      await loadRequests();
+      
+      toast.success('อัปเดตสถานะสำเร็จ!');
+      setDialogOpen(false);
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast.error(err?.message || 'ไม่สามารถบันทึกข้อมูลได้');
+    }
+  };
+
   useEffect(() => {
     const userStr = localStorage.getItem('user') || localStorage.getItem('currentUser');
     if (userStr) setCurrentUser(JSON.parse(userStr));
@@ -88,92 +117,14 @@ export default function UpdateRepair() {
   const loadRequests = async () => {
     setLoading(true);
     try {
-      const localData = localStorage.getItem('repair_requests_data');
-      if (localData) {
-        setRequests(JSON.parse(localData));
-      } else {
-        const res = await repairApi.getAll();
-        const data = res.data || [];
-        setRequests(data);
-        localStorage.setItem('repair_requests_data', JSON.stringify(data));
-      }
+      const res = await repairApi.getAll();
+      const data = res.data || [];
+      setRequests(data);
     } catch (err) {
       console.error("Load error:", err);
       setRequests([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSaveStatus = async () => {
-    try {
-      if (!selectedRequest) return;
-      
-      let finalAfterImages = repairImages.map(img => img.preview);
-      const technicianName = currentUser?.name || 'ช่างเทคนิค 1';
-      const now = new Date().toISOString();
-
-      // 1. ส่งข้อมูลอัปเดตไปยัง Backend API (จะอัปโหลดขึ้น Cloudinary ให้อัตโนมัติ)
-      try {
-        const apiRes: any = await repairApi.update({
-          id: selectedRequest.id || selectedRequest.request_no,
-          status: updateData.status,
-          technician_notes: updateData.technicianNotes,
-          after_images: finalAfterImages,
-          after_repair_images: finalAfterImages,
-          changed_by: currentUser?.id || currentUser?.name || 'ช่างเทคนิค',
-          technician_name: technicianName
-        });
-
-        if (apiRes?.data?.after_images && Array.isArray(apiRes.data.after_images)) {
-          finalAfterImages = apiRes.data.after_images;
-        }
-      } catch (apiErr) {
-        console.warn("Backend API update fallback to local:", apiErr);
-      }
-      
-      // 2. อัปเดตข้อมูลใน localStorage อย่างปลอดภัย (ป้องกัน QuotaExceededError)
-      try {
-        const localData = localStorage.getItem('repair_requests_data');
-        let currentRequests = localData ? JSON.parse(localData) : [];
-
-        const updated = currentRequests.map((req: any) => {
-          if (String(req.id) === String(selectedRequest.id) || String(req.request_no) === String(selectedRequest.request_no)) {
-            const history = req.status_history ? (typeof req.status_history === 'string' ? JSON.parse(req.status_history) : req.status_history) : [];
-            history.push({
-              status: updateData.status,
-              note: updateData.technicianNotes,
-              updated_at: now,
-              updated_by: technicianName
-            });
-
-            return {
-              ...req,
-              status: updateData.status,
-              technician_notes: updateData.technicianNotes,
-              technician: technicianName,
-              after_images: JSON.stringify(finalAfterImages),
-              after_repair_images: JSON.stringify(finalAfterImages),
-              status_history: JSON.stringify(history),
-              updated_at: now
-            };
-          }
-          return req;
-        });
-
-        localStorage.setItem('repair_requests_data', JSON.stringify(updated));
-        setRequests(updated);
-      } catch (storageErr) {
-        console.warn("LocalStorage quota error in UpdateRepair:", storageErr);
-      }
-
-      // (LINE Notify ถูกจัดการโดยฝั่ง Backend เรียบร้อยแล้ว จึงไม่ต้องเรียกจาก Frontend อีก)
-      
-      toast.success('อัปเดตสถานะการซ่อมสำเร็จแล้ว!');
-      setDialogOpen(false);
-    } catch (err: any) {
-      console.error("Save error:", err);
-      toast.error(err?.message || 'เกิดข้อผิดพลาดในการอัปเดตสถานะ');
     }
   };
 

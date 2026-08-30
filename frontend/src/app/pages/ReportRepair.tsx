@@ -175,54 +175,7 @@ const compressImage = (file: File): Promise<string> => {
         throw new Error(res.message || 'Server returned an error');
       }
 
-      // 2. อ่านข้อมูลเดิมจาก localStorage เพื่อซิงค์
-      const savedData = localStorage.getItem('repair_requests_data');
-      let currentRequests = [];
-      if (savedData) {
-        try { currentRequests = JSON.parse(savedData); } catch (e) { currentRequests = []; }
-      }
-
-      // 3. สร้างวัตถุรายการใหม่ (ใช้ข้อมูลจาก response API ถ้ามี)
-      const newRepairItem = {
-        id: res.id || `REQ-${Date.now()}`,
-        request_no: res.request_no || `REQ-${Date.now()}`,
-        userId: currentUser?.id || 'user-new',
-        user_name: currentUser?.name || 'ไม่ระบุ',
-        user_phone: currentUser?.phone || '',
-        department: currentUser?.department || formData.faculty || '',
-        student_id: currentUser?.student_id || '',
-        equipment_type_name: formData.equipmentType,
-        equipment_model: formData.equipmentModel,
-        location_description: formData.location,
-        problem_description: formData.problemDescription,
-        priority: priority,
-        status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        images: JSON.stringify(imagePreviews),
-        after_images: [],
-        after_repair_images: [],
-        status_history: JSON.stringify([{
-            status: 'pending',
-            updated_at: new Date().toISOString(),
-            updated_by: currentUser?.name || 'ผู้แจ้งซ่อม',
-            note: 'ส่งคำขอแจ้งซ่อมเรียบร้อย'
-        }])
-      };
-
-      // 4. บันทึกลง localStorage อย่างปลอดภัย (ป้องกัน QuotaExceededError เมื่อมีรูปภาพหลายรูป)
-      try {
-        const itemForLocal = {
-          ...newRepairItem,
-          images: JSON.stringify(imagePreviews) // เก็บลง cache ตามจริง ไม่ตัดทิ้งแล้ว
-        };
-        const updatedList = [itemForLocal, ...currentRequests];
-        localStorage.setItem('repair_requests_data', JSON.stringify(updatedList));
-      } catch (storageErr) {
-        console.warn("LocalStorage quota exceeded, skipping local cache:", storageErr);
-      }
-
-      setSubmittedRequestNo(newRepairItem.request_no);
+      setSubmittedRequestNo(res.request_no);
       setSubmitted(true);
       toast.success('ส่งคำขอซ่อมเรียบร้อยแล้ว');
     } catch (error: any) {
