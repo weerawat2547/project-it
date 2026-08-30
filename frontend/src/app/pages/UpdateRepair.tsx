@@ -334,17 +334,36 @@ export default function UpdateRepair() {
                 <Button variant="outline" className="w-full h-20 rounded-xl border-dashed" onClick={() => document.getElementById('repair_img')?.click()}>
                     <Camera className="mr-2"/> คลิกเพื่ออัปโหลดรูปผลงาน
                 </Button>
-                <input type="file" id="repair_img" className="hidden" multiple accept="image/*" onChange={(e) => {
+                <input type="file" id="repair_img" className="hidden" multiple accept="image/*" onChange={async (e) => {
                     if (e.target.files) {
                         const files = Array.from(e.target.files);
-                        files.forEach(file => {
-                            if (file.size > 5 * 1024 * 1024) {
-                                toast.error(`ไฟล์ ${file.name} มีขนาดเกิน 5MB`);
-                                return;
-                            }
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                                const base64Url = reader.result as string;
+                        for (const file of files) {
+                            try {
+                                const base64Url = await new Promise<string>((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                        const img = new Image();
+                                        img.onload = () => {
+                                            const canvas = document.createElement('canvas');
+                                            const MAX_DIM = 1280;
+                                            let width = img.width;
+                                            let height = img.height;
+                                            if (width > height) {
+                                                if (width > MAX_DIM) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM; }
+                                            } else {
+                                                if (height > MAX_DIM) { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM; }
+                                            }
+                                            canvas.width = width; canvas.height = height;
+                                            const ctx = canvas.getContext('2d');
+                                            if (ctx) { ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.75)); }
+                                            else { resolve(ev.target?.result as string); }
+                                        };
+                                        img.onerror = () => resolve(ev.target?.result as string);
+                                        img.src = ev.target?.result as string;
+                                    };
+                                    reader.readAsDataURL(file);
+                                });
+
                                 setRepairImages(prev => {
                                     if (prev.length >= 5) {
                                         toast.error('สามารถอัปโหลดรูปภาพได้สูงสุด 5 รูป');
@@ -352,9 +371,10 @@ export default function UpdateRepair() {
                                     }
                                     return [...prev, { file, preview: base64Url }];
                                 });
-                            };
-                            reader.readAsDataURL(file);
-                        });
+                            } catch {
+                                // fallback
+                            }
+                        }
                     }
                 }} />
                 <div className="grid grid-cols-5 gap-2 mt-2">
