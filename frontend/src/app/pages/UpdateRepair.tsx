@@ -67,6 +67,7 @@ export default function UpdateRepair() {
     try {
       const response = await fetch(`${BASE_URL}/line_notify.php`, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });

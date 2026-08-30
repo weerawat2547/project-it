@@ -20,27 +20,28 @@ define('LINE_CHANNEL_TOKEN', 'DHjt0bQw6MKuH6jxwmD+nER4YGp+ixenbssdcDyU4Gw/zsFVB9
 function sendLineMessage(string $userId, string $message, array $imageUrls = []): bool {
     if (empty($userId) || empty($message)) return false;
 
+    $validUrls = [];
+    foreach ($imageUrls as $url) {
+        if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
+            $validUrls[] = $url;
+        }
+    }
+
+    // LINE Push รองรับสูงสุด 5 ข้อความต่อครั้ง: ข้อความตัวหนังสือ 1 + รูปภาพ 4
+    $firstBatch = array_slice($validUrls, 0, 4);
+    $secondBatch = array_slice($validUrls, 4);
+
     $messages = [
         ["type" => "text", "text" => $message]
     ];
 
-    $imageCount = 0;
-    foreach ($imageUrls as $url) {
-        if ($imageCount >= 4) break;
-        if (is_string($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
-            $messages[] = [
-                "type" => "image",
-                "originalContentUrl" => $url,
-                "previewImageUrl"   => $url
-            ];
-            $imageCount++;
-        }
+    foreach ($firstBatch as $url) {
+        $messages[] = [
+            "type" => "image",
+            "originalContentUrl" => $url,
+            "previewImageUrl"   => $url
+        ];
     }
-
-    $payload = json_encode([
-        "to" => $userId,
-        "messages" => $messages
-    ]);
 
     $ch = curl_init("https://api.line.me/v2/bot/message/push");
     curl_setopt_array($ch, [
@@ -48,7 +49,7 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
         CURLOPT_POST           => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_POSTFIELDS     => json_encode(["to" => $userId, "messages" => $messages]),
         CURLOPT_HTTPHEADER     => [
             "Content-Type: application/json",
             "Authorization: Bearer " . LINE_CHANNEL_TOKEN,
@@ -57,6 +58,32 @@ function sendLineMessage(string $userId, string $message, array $imageUrls = [])
     $res  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    // หากมีรูปภาพเกิน 4 รูป (เช่น รูปที่ 5) ให้ยิงชุดที่สองส่งรูปที่เหลือให้ครบ 100%
+    if (!empty($secondBatch)) {
+        $extraMessages = [];
+        foreach ($secondBatch as $url) {
+            $extraMessages[] = [
+                "type" => "image",
+                "originalContentUrl" => $url,
+                "previewImageUrl"   => $url
+            ];
+        }
+        $ch2 = curl_init("https://api.line.me/v2/bot/message/push");
+        curl_setopt_array($ch2, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_POSTFIELDS     => json_encode(["to" => $userId, "messages" => $extraMessages]),
+            CURLOPT_HTTPHEADER     => [
+                "Content-Type: application/json",
+                "Authorization: Bearer " . LINE_CHANNEL_TOKEN,
+            ],
+        ]);
+        curl_exec($ch2);
+        curl_close($ch2);
+    }
 
     return $code === 200;
 }

@@ -157,6 +157,7 @@ const compressImage = (file: File): Promise<string> => {
 
       const res = await fetch(`${BASE_URL}/repair_requests.php`, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json'
         },

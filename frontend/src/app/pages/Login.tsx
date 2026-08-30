@@ -38,6 +38,7 @@ export default function Login() {
     try {
       const res = await fetch(`${BASE_URL}/login.php`, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
