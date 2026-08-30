@@ -295,13 +295,20 @@ function updateRequest(array $data) {
     $afterImagesJson = !empty($uploadedCloudinaryUrls) ? json_encode($uploadedCloudinaryUrls) : null;
     $repairImageUrl = !empty($uploadedCloudinaryUrls) ? $uploadedCloudinaryUrls[0] : null;
 
-    // ตรวจสอบและสร้างคอลัมน์ after_images / repair_image ใน DB หากยังไม่มี
-    try {
-        $pdo->exec("ALTER TABLE repair_requests ADD COLUMN after_images LONGTEXT NULL");
-    } catch (Throwable $e) {}
-    try {
-        $pdo->exec("ALTER TABLE repair_requests ADD COLUMN repair_image TEXT NULL");
-    } catch (Throwable $e) {}
+    // ตรวจสอบและสร้างคอลัมน์ทั้งหมดที่จำเป็นในตาราง repair_requests อัตโนมัติหากยังไม่มี
+    $columnsToEnsure = [
+        "technician_notes" => "TEXT NULL",
+        "status_history"   => "LONGTEXT NULL",
+        "after_images"     => "LONGTEXT NULL",
+        "repair_image"     => "TEXT NULL",
+        "completed_at"     => "DATETIME NULL",
+        "updated_at"       => "DATETIME NULL"
+    ];
+    foreach ($columnsToEnsure as $col => $colType) {
+        try {
+            $pdo->exec("ALTER TABLE repair_requests ADD COLUMN {$col} {$colType}");
+        } catch (Throwable $e) {}
+    }
 
     @set_time_limit(60);
 

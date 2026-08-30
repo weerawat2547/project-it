@@ -218,9 +218,9 @@ function notifyRepairUpdated(
 
     $msg .= "\nเวลา: " . date('d/m/Y H:i');
 
-    // รวบรวมรูปภาพ HTTP/HTTPS สำหรับแนบเข้า LINE Image Messages
+    // รวบรวมรูปภาพ HTTP/HTTPS สำหรับแนบเข้า LINE Image Messages (นำรูปผลงานหลังซ่อมขึ้นก่อน)
     $onlineImageUrls = [];
-    foreach (array_merge((array)$beforeImages, (array)$afterImages) as $imgUrl) {
+    foreach (array_merge((array)$afterImages, (array)$beforeImages) as $imgUrl) {
         if (is_string($imgUrl) && (str_starts_with($imgUrl, 'http://') || str_starts_with($imgUrl, 'https://'))) {
             $onlineImageUrls[] = $imgUrl;
         }

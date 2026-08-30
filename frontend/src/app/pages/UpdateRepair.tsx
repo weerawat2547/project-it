@@ -88,18 +88,18 @@ export default function UpdateRepair() {
   const loadRequests = async () => {
     setLoading(true);
     try {
+      const res = await repairApi.getAll();
+      const data = res.data || [];
+      setRequests(data);
+      try {
+        localStorage.setItem('repair_requests_data', JSON.stringify(data.slice(0, 15)));
+      } catch (e) {}
+    } catch (err) {
+      console.warn("API load error, fallback to local:", err);
       const localData = localStorage.getItem('repair_requests_data');
       if (localData) {
-        setRequests(JSON.parse(localData));
-      } else {
-        const res = await repairApi.getAll();
-        const data = res.data || [];
-        setRequests(data);
-        localStorage.setItem('repair_requests_data', JSON.stringify(data));
+        try { setRequests(JSON.parse(localData)); } catch (e) {}
       }
-    } catch (err) {
-      console.error("Load error:", err);
-      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export default function UpdateRepair() {
       const technicianName = currentUser?.name || 'ช่างเทคนิค 1';
       const now = new Date().toISOString();
 
-      // 1. ส่งข้อมูลอัปเดตไปยัง Backend API (จะอัปโหลดขึ้น Cloudinary ให้อัตโนมัติ)
+      // 1. ส่งข้อมูลอัปเดตไปยัง Backend API (จะอัปโหลดขึ้น Cloudinary และส่ง LINE ให้อัตโนมัติ)
       try {
         const apiRes: any = await repairApi.update({
           id: selectedRequest.id || selectedRequest.request_no,
@@ -152,7 +152,7 @@ export default function UpdateRepair() {
               status: updateData.status,
               technician_notes: updateData.technicianNotes,
               technician: technicianName,
-              after_images: JSON.stringify(finalAfterImages.slice(0, 2)), // เก็บตัวอย่าง 2 รูปใน cache
+              after_images: JSON.stringify(finalAfterImages.slice(0, 2)),
               after_repair_images: JSON.stringify(finalAfterImages.slice(0, 2)),
               status_history: JSON.stringify(history),
               updated_at: now
@@ -162,13 +162,15 @@ export default function UpdateRepair() {
         });
 
         localStorage.setItem('repair_requests_data', JSON.stringify(updated.slice(0, 20)));
-        setRequests(updated);
       } catch (storageErr) {
         console.warn("LocalStorage quota error in UpdateRepair:", storageErr);
       }
 
-      toast.success('อัปเดตสถานะและอัปโหลดรูปผลงานเรียบร้อยแล้ว');
+      toast.success('อัปเดตสถานะและบันทึกข้อมูลเรียบร้อยแล้ว');
       setDialogOpen(false);
+      
+      // 3. โหลดข้อมูลสดใหม่ล่าสุดจากเซิร์ฟเวอร์ทันที
+      await loadRequests();
     } catch (err: any) {
       console.error("Save error:", err);
       toast.error(err?.message || 'เกิดข้อผิดพลาดในการอัปเดตสถานะ');
@@ -425,19 +427,42 @@ export default function UpdateRepair() {
                     <div className="space-y-4">
                       <h3 className="font-black text-lg flex items-center gap-2"><History size={18}/> ประวัติการดำเนินงาน</h3>
                       <div className="space-y-4 border-l-2 border-slate-200 ml-2 pl-4">
-                        {selectedRequest.status_history && JSON.parse(selectedRequest.status_history).sort((a:any, b:any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()).map((h:any, i:number) => (
-                          <div key={i} className="relative">
-                            <div className="absolute -left-[21px] top-0 p-1 bg-white border rounded-full"><CheckCircle2 size={12} className="text-emerald-500"/></div>
-                            <p className="font-bold text-sm text-blue-700">{getStatusLabel(h.status)}</p>
-                            <p className="text-xs text-slate-500">{formatThaiDate(h.updated_at)} โดย {h.updated_by}</p>
-                            {h.note && <p className="text-sm bg-slate-50 p-2 rounded mt-1">หมายเหตุ: {h.note}</p>}
-                          </div>
-                        ))}
+                        {(() => {
+                          const rawH = selectedRequest.status_history;
+                          let histArr: any[] = [];
+                          try {
+                            histArr = typeof rawH === 'string' ? JSON.parse(rawH) : (Array.isArray(rawH) ? rawH : []);
+                          } catch (e) {
+                            histArr = [];
+                          }
+                          return histArr.sort((a:any, b:any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()).map((h:any, i:number) => (
+                            <div key={i} className="relative">
+                              <div className="absolute -left-[21px] top-0 p-1 bg-white border rounded-full"><CheckCircle2 size={12} className="text-emerald-500"/></div>
+                              <p className="font-bold text-sm text-blue-700">{getStatusLabel(h.status)}</p>
+                              <p className="text-xs text-slate-500">{formatThaiDate(h.updated_at)} โดย {h.updated_by}</p>
+                              {h.note && <p className="text-sm bg-slate-50 p-2 rounded mt-1">หมายเหตุ: {h.note}</p>}
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                 </div>
                 <div className="space-y-6">
-                    <div><h4 className="font-bold flex items-center gap-2"><ImageIcon size={18}/> รูปก่อนซ่อม</h4><div className="grid grid-cols-2 gap-2 mt-2">{selectedRequest.images && JSON.parse(selectedRequest.images).map((img:string, i:number) => <img key={i} src={img} className="w-full h-32 object-cover rounded-lg border"/>)}</div></div>
+                    <div>
+                      <h4 className="font-bold flex items-center gap-2"><ImageIcon size={18}/> รูปก่อนซ่อม</h4>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        {(() => {
+                          const rawI = selectedRequest.images;
+                          let imgArr: string[] = [];
+                          try {
+                            imgArr = typeof rawI === 'string' ? JSON.parse(rawI) : (Array.isArray(rawI) ? rawI : []);
+                          } catch(e) {
+                            imgArr = [];
+                          }
+                          return imgArr.map((img:string, i:number) => <img key={i} src={img} className="w-full h-32 object-cover rounded-lg border"/>);
+                        })()}
+                      </div>
+                    </div>
                     <div>
                       <h4 className="font-bold flex items-center gap-2"><Camera size={18}/> รูปหลังซ่อม</h4>
                       {(() => {
