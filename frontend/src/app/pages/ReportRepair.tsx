@@ -470,16 +470,6 @@ const compressImage = (file: File): Promise<string> => {
               <span className="text-sm font-bold text-slate-500">ขนาดไม่เกิน 5 MB/รูป</span>
             </div>
 
-            <input
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageUpload}
-              className="w-0 h-0 opacity-0 absolute -z-10"
-              tabIndex={-1}
-            />
-
             {imagePreviews.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {imagePreviews.map((preview, index) => (
@@ -491,7 +481,7 @@ const compressImage = (file: File): Promise<string> => {
                     />
                     <button
                       type="button"
-                      className="absolute top-2 right-2 p-1.5 bg-rose-600 text-white rounded-full shadow-lg opacity-90 group-hover:opacity-100 hover:bg-rose-700 transition-all"
+                      className="absolute top-2 right-2 p-1.5 bg-rose-600 text-white rounded-full shadow-lg opacity-90 group-hover:opacity-100 hover:bg-rose-700 transition-all z-20"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeImage(index);
@@ -499,27 +489,37 @@ const compressImage = (file: File): Promise<string> => {
                     >
                       <X className="size-5" />
                     </button>
-                    <span className="absolute bottom-2 left-2 bg-black/70 text-white font-mono text-xs font-bold px-2.5 py-0.5 rounded-full backdrop-blur-sm shadow">
+                    <span className="absolute bottom-2 left-2 bg-black/70 text-white font-mono text-xs font-bold px-2.5 py-0.5 rounded-full backdrop-blur-sm shadow z-20">
                       {index + 1}/5
                     </span>
                   </div>
                 ))}
 
                 {imagePreviews.length < 5 && (
-                  <label
-                    htmlFor="images"
-                    className="h-32 rounded-2xl border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 cursor-pointer transition-all active:scale-95"
-                  >
+                  <div className="relative h-32 rounded-2xl border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 transition-all active:scale-95 overflow-hidden">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      title="เพิ่มรูปภาพ"
+                    />
                     <Upload className="size-6" />
                     <span className="text-sm font-bold">เพิ่มรูปภาพ</span>
-                  </label>
+                  </div>
                 )}
               </div>
             ) : (
-              <label
-                htmlFor="images"
-                className="block border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-8 text-center bg-slate-50/80 hover:bg-blue-50/30 cursor-pointer transition-all duration-200 group shadow-inner active:scale-[0.99]"
-              >
+              <div className="relative block border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-8 text-center bg-slate-50/80 hover:bg-blue-50/30 transition-all duration-200 group shadow-inner active:scale-[0.99] overflow-hidden">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  title="เลือกรูปภาพ"
+                />
                 <div className="size-14 rounded-2xl bg-white shadow-md border border-slate-200 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-3.5 text-slate-500 group-hover:text-blue-600 transition-colors">
                   <ImageIcon className="size-7" />
                 </div>
@@ -529,7 +529,7 @@ const compressImage = (file: File): Promise<string> => {
                 <p className="text-sm font-semibold text-slate-400 mt-1">
                   รองรับไฟล์ภาพ JPG, PNG (สูงสุด 5 รูป)
                 </p>
-              </label>
+              </div>
             )}
           </div>
 

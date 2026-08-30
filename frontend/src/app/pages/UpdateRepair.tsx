@@ -330,10 +330,8 @@ export default function UpdateRepair() {
             </div>
             <div>
                 <Label>รูปผลงานหลังซ่อมเสร็จ ({repairImages.length}/5)</Label>
-                <Button variant="outline" className="w-full h-20 rounded-xl border-dashed" onClick={() => document.getElementById('repair_img')?.click()}>
-                    <Camera className="mr-2"/> คลิกเพื่ออัปโหลดรูปผลงาน
-                </Button>
-                <input type="file" id="repair_img" className="w-0 h-0 opacity-0 absolute -z-10" tabIndex={-1} multiple accept="image/*" onChange={async (e) => {
+                <div className="relative w-full h-20 rounded-xl border-dashed border-2 border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer overflow-hidden text-sm font-semibold">
+                    <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="อัปโหลดรูปผลงาน" multiple accept="image/*" onChange={async (e) => {
                     if (e.target.files) {
                         const files = Array.from(e.target.files);
                         for (const file of files) {
@@ -376,6 +374,8 @@ export default function UpdateRepair() {
                         }
                     }
                 }} />
+                <Camera className="mr-2" /> คลิกเพื่ออัปโหลดรูปผลงาน
+                </div>
                 <div className="grid grid-cols-5 gap-2 mt-2">
                     {repairImages.map((img, i) => (
                         <div key={i} className="relative">
