@@ -295,19 +295,22 @@ function updateRequest(array $data) {
     $afterImagesJson = !empty($uploadedCloudinaryUrls) ? json_encode($uploadedCloudinaryUrls) : null;
     $repairImageUrl = !empty($uploadedCloudinaryUrls) ? $uploadedCloudinaryUrls[0] : null;
 
-    // ตรวจสอบและสร้างคอลัมน์ทั้งหมดที่จำเป็นในตาราง repair_requests อัตโนมัติหากยังไม่มี
-    $columnsToEnsure = [
-        "technician_notes" => "TEXT NULL",
-        "status_history"   => "LONGTEXT NULL",
-        "after_images"     => "LONGTEXT NULL",
-        "repair_image"     => "TEXT NULL",
-        "completed_at"     => "DATETIME NULL",
-        "updated_at"       => "DATETIME NULL"
-    ];
-    foreach ($columnsToEnsure as $col => $colType) {
+    // ตรวจสอบคอลัมน์อย่างรวดเร็วก่อน (เพื่อป้องกันการทำ ALTER TABLE ซ้ำซ้อนซึ่งทำให้ Timeout)
+    try {
+        $pdo->query("SELECT technician_notes, status_history, after_images, repair_image, completed_at FROM repair_requests LIMIT 1");
+    } catch (Throwable $e) {
+        // ถ้ายิง Query แล้ว Error แสดงว่าคอลัมน์ยังไม่ครบ ให้สร้างคอลัมน์ทั้งหมดแบบรวบยอดในคำสั่งเดียวเพื่อความรวดเร็ว
         try {
-            $pdo->exec("ALTER TABLE repair_requests ADD COLUMN {$col} {$colType}");
-        } catch (Throwable $e) {}
+            $pdo->exec("
+                ALTER TABLE repair_requests 
+                ADD COLUMN IF NOT EXISTS technician_notes TEXT NULL,
+                ADD COLUMN IF NOT EXISTS status_history LONGTEXT NULL,
+                ADD COLUMN IF NOT EXISTS after_images LONGTEXT NULL,
+                ADD COLUMN IF NOT EXISTS repair_image TEXT NULL,
+                ADD COLUMN IF NOT EXISTS completed_at DATETIME NULL,
+                ADD COLUMN IF NOT EXISTS updated_at DATETIME NULL
+            ");
+        } catch (Throwable $ex) {}
     }
 
     @set_time_limit(60);
