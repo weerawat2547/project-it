@@ -59,41 +59,48 @@ export default function ReportRepair() {
   };
 
 const compressImage = (file: File): Promise<string> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_DIM = 800;
-        let width = img.width;
-        let height = img.height;
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_DIM = 1024; // ลดจาก 800 เป็น 1024 เพื่อคุณภาพพอดี
+          let width = img.width;
+          let height = img.height;
 
-        if (width > height) {
-          if (width > MAX_DIM) {
-            height = Math.round((height * MAX_DIM) / width);
-            width = MAX_DIM;
+          // ลดขนาดรูปให้พอดี
+          if (width > height) {
+            if (width > MAX_DIM) {
+              height = Math.round((height * MAX_DIM) / width);
+              width = MAX_DIM;
+            }
+          } else {
+            if (height > MAX_DIM) {
+              width = Math.round((width * MAX_DIM) / height);
+              height = MAX_DIM;
+            }
           }
-        } else {
-          if (height > MAX_DIM) {
-            width = Math.round((width * MAX_DIM) / height);
-            height = MAX_DIM;
-          }
-        }
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.6));
-        } else {
-          resolve(event.target?.result as string);
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // บีบอัด JPEG คุณภาพ 0.5 (ลดขนาดไฟล์ได้มากสำหรับมือถือ)
+            resolve(canvas.toDataURL('image/jpeg', 0.5));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        } catch (e) {
+          reject(e);
         }
       };
-      img.onerror = () => resolve(event.target?.result as string);
+      img.onerror = () => reject(new Error('ไม่สามารถอ่านรูปภาพได้'));
       img.src = event.target?.result as string;
     };
+    reader.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์ได้'));
     reader.readAsDataURL(file);
   });
 };
@@ -112,19 +119,19 @@ const compressImage = (file: File): Promise<string> => {
 
       for (const file of fileArray) {
         try {
+          // บีบอัดรูปอัตโนมัติ ไม่ว่าไฟล์จะใหญ่แค่ไหน
           const compressedBase64 = await compressImage(file);
           setImagePreviews(prev => [...prev, compressedBase64]);
-        } catch {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setImagePreviews(prev => [...prev, reader.result as string]);
-          };
-          reader.readAsDataURL(file);
+        } catch (err) {
+          console.error("Image compress error:", err);
+          toast.error(`ไม่สามารถโหลดรูป "${file.name}" ได้ ลองเลือกรูปอื่น`);
         }
       }
 
       toast.success(`อัปโหลดรูปภาพสำเร็จ ${fileArray.length} รูป`);
     }
+    // รีเซ็ต input เพื่อให้กดเลือกรูปเดิมซ้ำได้
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -466,8 +473,8 @@ const compressImage = (file: File): Promise<string> => {
           {/* อัปโหลดรูปภาพ */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="images" className="text-slate-800 font-bold text-base">อัปโหลดรูปภาพเพิ่มเติม (สูงสุด 5 รูป)</Label>
-              <span className="text-sm font-bold text-slate-500">ขนาดไม่เกิน 5 MB/รูป</span>
+              <Label className="text-slate-800 font-bold text-base">อัปโหลดรูปภาพเพิ่มเติม (สูงสุด 5 รูป)</Label>
+              <span className="text-sm font-bold text-slate-500">ระบบบีบอัดรูปอัตโนมัติ</span>
             </div>
 
             {imagePreviews.length > 0 && (
