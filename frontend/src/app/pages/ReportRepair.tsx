@@ -470,8 +470,8 @@ const compressImage = (file: File): Promise<string> => {
               <span className="text-sm font-bold text-slate-500">ขนาดไม่เกิน 5 MB/รูป</span>
             </div>
 
-            {imagePreviews.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+            {imagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 mb-4">
                 {imagePreviews.map((preview, index) => (
                   <div key={index} className="relative group rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg shadow-slate-300/50">
                     <img
@@ -494,40 +494,20 @@ const compressImage = (file: File): Promise<string> => {
                     </span>
                   </div>
                 ))}
-
-                {imagePreviews.length < 5 && (
-                  <div className="relative h-32 rounded-2xl border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 transition-all active:scale-95 overflow-hidden">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleImageUpload}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      title="เพิ่มรูปภาพ"
-                    />
-                    <Upload className="size-6" />
-                    <span className="text-sm font-bold">เพิ่มรูปภาพ</span>
-                  </div>
-                )}
               </div>
-            ) : (
-              <div className="relative block border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-8 text-center bg-slate-50/80 hover:bg-blue-50/30 transition-all duration-200 group shadow-inner active:scale-[0.99] overflow-hidden">
+            )}
+
+            {imagePreviews.length < 5 && (
+              <div className="flex flex-col gap-2 mt-2">
                 <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleImageUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  title="เลือกรูปภาพ"
+                  className="w-full rounded-xl border-2 border-slate-200 p-3 bg-white text-slate-700 font-semibold file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                 />
-                <div className="size-14 rounded-2xl bg-white shadow-md border border-slate-200 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-3.5 text-slate-500 group-hover:text-blue-600 transition-colors">
-                  <ImageIcon className="size-7" />
-                </div>
-                <p className="text-base font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors">
-                  แตะที่นี่เพื่อเลือกรูปภาพ หรือ ถ่ายรูปอาการเสีย
-                </p>
-                <p className="text-sm font-semibold text-slate-400 mt-1">
-                  รองรับไฟล์ภาพ JPG, PNG (สูงสุด 5 รูป)
+                <p className="text-sm font-semibold text-slate-500">
+                  แตะที่ปุ่ม Choose Files เพื่อเลือกรูปภาพ (รองรับไฟล์ภาพ JPG, PNG สูงสุด 5 รูป)
                 </p>
               </div>
             )}

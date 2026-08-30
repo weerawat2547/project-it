@@ -330,52 +330,53 @@ export default function UpdateRepair() {
             </div>
             <div>
                 <Label>รูปผลงานหลังซ่อมเสร็จ ({repairImages.length}/5)</Label>
-                <div className="relative w-full h-20 rounded-xl border-dashed border-2 border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer overflow-hidden text-sm font-semibold">
-                    <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="อัปโหลดรูปผลงาน" multiple accept="image/*" onChange={async (e) => {
-                    if (e.target.files) {
-                        const files = Array.from(e.target.files);
-                        for (const file of files) {
-                            try {
-                                const base64Url = await new Promise<string>((resolve) => {
-                                    const reader = new FileReader();
-                                    reader.onload = (ev) => {
-                                        const img = new Image();
-                                        img.onload = () => {
-                                            const canvas = document.createElement('canvas');
-                                            const MAX_DIM = 800;
-                                            let width = img.width;
-                                            let height = img.height;
-                                            if (width > height) {
-                                                if (width > MAX_DIM) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM; }
-                                            } else {
-                                                if (height > MAX_DIM) { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM; }
-                                            }
-                                            canvas.width = width; canvas.height = height;
-                                            const ctx = canvas.getContext('2d');
-                                            if (ctx) { ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.6)); }
-                                            else { resolve(ev.target?.result as string); }
-                                        };
-                                        img.onerror = () => resolve(ev.target?.result as string);
-                                        img.src = ev.target?.result as string;
-                                    };
-                                    reader.readAsDataURL(file);
-                                });
+                {repairImages.length < 5 && (
+                    <div className="flex flex-col gap-2 mt-2 mb-4">
+                        <input type="file" multiple accept="image/*" className="w-full rounded-xl border-2 border-slate-200 p-3 bg-white text-slate-700 font-semibold file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onChange={async (e) => {
+                            if (e.target.files) {
+                                const files = Array.from(e.target.files);
+                                for (const file of files) {
+                                    try {
+                                        const base64Url = await new Promise<string>((resolve) => {
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                                const img = new Image();
+                                                img.onload = () => {
+                                                    const canvas = document.createElement('canvas');
+                                                    const MAX_DIM = 800;
+                                                    let width = img.width;
+                                                    let height = img.height;
+                                                    if (width > height) {
+                                                        if (width > MAX_DIM) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM; }
+                                                    } else {
+                                                        if (height > MAX_DIM) { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM; }
+                                                    }
+                                                    canvas.width = width; canvas.height = height;
+                                                    const ctx = canvas.getContext('2d');
+                                                    if (ctx) { ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.6)); }
+                                                    else { resolve(ev.target?.result as string); }
+                                                };
+                                                img.onerror = () => resolve(ev.target?.result as string);
+                                                img.src = ev.target?.result as string;
+                                            };
+                                            reader.readAsDataURL(file);
+                                        });
 
-                                setRepairImages(prev => {
-                                    if (prev.length >= 5) {
-                                        toast.error('สามารถอัปโหลดรูปภาพได้สูงสุด 5 รูป');
-                                        return prev;
+                                        setRepairImages(prev => {
+                                            if (prev.length >= 5) {
+                                                toast.error('สามารถอัปโหลดรูปภาพได้สูงสุด 5 รูป');
+                                                return prev;
+                                            }
+                                            return [...prev, { file, preview: base64Url }];
+                                        });
+                                    } catch {
+                                        // fallback
                                     }
-                                    return [...prev, { file, preview: base64Url }];
-                                });
-                            } catch {
-                                // fallback
+                                }
                             }
-                        }
-                    }
-                }} />
-                <Camera className="mr-2" /> คลิกเพื่ออัปโหลดรูปผลงาน
-                </div>
+                        }} />
+                    </div>
+                )}
                 <div className="grid grid-cols-5 gap-2 mt-2">
                     {repairImages.map((img, i) => (
                         <div key={i} className="relative">
