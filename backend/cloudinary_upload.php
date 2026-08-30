@@ -25,7 +25,7 @@ function uploadToCloudinary(string $filePathOrBase64, string $folder = 'it_repai
             CURLOPT_POST           => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_TIMEOUT        => 4,
+            CURLOPT_TIMEOUT        => 10,
             CURLOPT_POSTFIELDS     => [
                 'file'      => $postFile,
                 'api_key'   => CLOUDINARY_API_KEY,
@@ -43,4 +43,8 @@ function uploadToCloudinary(string $filePathOrBase64, string $folder = 'it_repai
     } catch (Throwable $e) {
         return null;
     }
+}
+
+function uploadBase64ToCloudinary(string $base64String, string $folder = 'it_repair'): ?string {
+    return uploadToCloudinary($base64String, $folder);
 }

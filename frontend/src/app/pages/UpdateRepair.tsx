@@ -167,13 +167,6 @@ export default function UpdateRepair() {
         console.warn("LocalStorage quota error in UpdateRepair:", storageErr);
       }
 
-      // 3. ยิง LINE Notify อัปเดตสถานะพร้อมแนบ Cloudinary URL
-      try {
-        await sendLineUpdateNotification(selectedRequest, updateData.status, updateData.technicianNotes, finalAfterImages);
-      } catch (lineErr) {
-        console.warn("LINE Notification non-fatal error:", lineErr);
-      }
-
       toast.success('อัปเดตสถานะและอัปโหลดรูปผลงานเรียบร้อยแล้ว');
       setDialogOpen(false);
     } catch (err: any) {
