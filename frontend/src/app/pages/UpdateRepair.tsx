@@ -152,8 +152,8 @@ export default function UpdateRepair() {
               status: updateData.status,
               technician_notes: updateData.technicianNotes,
               technician: technicianName,
-              after_images: JSON.stringify(finalAfterImages.slice(0, 2)), // เก็บตัวอย่าง 2 รูปใน cache
-              after_repair_images: JSON.stringify(finalAfterImages.slice(0, 2)),
+              after_images: JSON.stringify(finalAfterImages),
+              after_repair_images: JSON.stringify(finalAfterImages),
               status_history: JSON.stringify(history),
               updated_at: now
             };
@@ -161,7 +161,7 @@ export default function UpdateRepair() {
           return req;
         });
 
-        localStorage.setItem('repair_requests_data', JSON.stringify(updated.slice(0, 20)));
+        localStorage.setItem('repair_requests_data', JSON.stringify(updated));
         setRequests(updated);
       } catch (storageErr) {
         console.warn("LocalStorage quota error in UpdateRepair:", storageErr);

@@ -8,6 +8,13 @@ if (file_exists(__DIR__ . '/cloudinary_upload.php')) {
     require_once __DIR__ . '/cloudinary_upload.php';
 }
 
+// บายพาส InfinityFree Bot Protection
+if (isset($_GET['ping'])) {
+    $redirect = $_GET['redirect'] ?? '/';
+    header("Location: $redirect");
+    exit;
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {

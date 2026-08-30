@@ -207,9 +207,9 @@ const compressImage = (file: File): Promise<string> => {
       try {
         const itemForLocal = {
           ...newRepairItem,
-          images: JSON.stringify(imagePreviews.slice(0, 2)) // เก็บตัวอย่าง 2 รูปลง cache ในเครื่องเพื่อประหยัดพื้นที่
+          images: JSON.stringify(imagePreviews) // เก็บลง cache ตามจริง ไม่ตัดทิ้งแล้ว
         };
-        const updatedList = [itemForLocal, ...currentRequests.slice(0, 15)];
+        const updatedList = [itemForLocal, ...currentRequests];
         localStorage.setItem('repair_requests_data', JSON.stringify(updatedList));
       } catch (storageErr) {
         console.warn("LocalStorage quota exceeded, skipping local cache:", storageErr);

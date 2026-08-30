@@ -8,7 +8,23 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
-  const data = await res.json();
+  
+  const text = await res.text();
+  
+  // ตรวจจับ InfinityFree AES Bot Challenge (ถ้า API ส่งกลับมาเป็น HTML แทน JSON)
+  if (text.includes('<html>') && text.includes('aes.js')) {
+    // บังคับเบราว์เซอร์เปิด PHP ตรงๆ เพื่อรัน JS Challenge แล้วรับ Cookie
+    window.location.href = `${BASE_URL}/repair_requests.php?ping=1&redirect=` + encodeURIComponent(window.location.href);
+    throw new Error('กำลังเชื่อมต่อเซิร์ฟเวอร์... กรุณารอสักครู่');
+  }
+  
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error('เซิร์ฟเวอร์ตอบกลับผิดพลาด (ไม่ใช่ JSON)');
+  }
+
   if (!data.success) throw new Error(data.message || 'เกิดข้อผิดพลาด');
   return data;
 }
