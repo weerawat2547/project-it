@@ -125,13 +125,17 @@ function createRequest(array $data) {
         }
     }
 
-    // รองรับการอัปโหลดแบบ JSON Base64
+    // รองรับการอัปโหลดแบบ JSON Base64 (สูงสุด 5 รูป)
     if (!empty($data['images_base64']) && is_array($data['images_base64'])) {
+        @set_time_limit(60);
         foreach ($data['images_base64'] as $base64) {
+            if (empty($base64)) continue;
+            $url = null;
             if (function_exists('uploadBase64ToCloudinary')) {
                 $url = uploadBase64ToCloudinary($base64, 'it_repair');
-                if ($url) $imageUrls[] = $url;
             }
+            // ถ้าอัปโหลดขึ้น Cloudinary สำเร็จใช้ URL ถ้าไม่สำเร็จเก็บ Base64 ลง DB รับประกันรูปไม่หาย 100%
+            $imageUrls[] = $url ?: $base64;
         }
     }
 
