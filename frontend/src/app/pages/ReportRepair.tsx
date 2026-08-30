@@ -498,8 +498,11 @@ const compressImage = (file: File): Promise<string> => {
                     />
                     <button
                       type="button"
-                      className="absolute top-2 right-2 p-1.5 bg-rose-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 hover:bg-rose-700 transition-all"
-                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 p-1.5 bg-rose-600 text-white rounded-full shadow-lg opacity-90 group-hover:opacity-100 hover:bg-rose-700 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeImage(index);
+                      }}
                     >
                       <X className="size-5" />
                     </button>
@@ -509,32 +512,31 @@ const compressImage = (file: File): Promise<string> => {
                   </div>
                 ))}
 
-                {images.length < 5 && (
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('images')?.click()}
-                    className="h-32 rounded-2xl border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 transition-all"
+                {imagePreviews.length < 5 && (
+                  <label
+                    htmlFor="images"
+                    className="h-32 rounded-2xl border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 cursor-pointer transition-all active:scale-95"
                   >
                     <Upload className="size-6" />
                     <span className="text-sm font-bold">เพิ่มรูปภาพ</span>
-                  </button>
+                  </label>
                 )}
               </div>
             ) : (
-              <div
-                onClick={() => document.getElementById('images')?.click()}
-                className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-8 text-center bg-slate-50/80 hover:bg-blue-50/30 cursor-pointer transition-all duration-200 group shadow-inner"
+              <label
+                htmlFor="images"
+                className="block border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-8 text-center bg-slate-50/80 hover:bg-blue-50/30 cursor-pointer transition-all duration-200 group shadow-inner active:scale-[0.99]"
               >
                 <div className="size-14 rounded-2xl bg-white shadow-md border border-slate-200 group-hover:bg-blue-100 flex items-center justify-center mx-auto mb-3.5 text-slate-500 group-hover:text-blue-600 transition-colors">
                   <ImageIcon className="size-7" />
                 </div>
                 <p className="text-base font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors">
-                  คลิกที่นี่เพื่อเลือกอัปโหลดรูปภาพอาการเสีย
+                  แตะที่นี่เพื่อเลือกรูปภาพ หรือ ถ่ายรูปอาการเสีย
                 </p>
                 <p className="text-sm font-semibold text-slate-400 mt-1">
                   รองรับไฟล์ภาพ JPG, PNG (สูงสุด 5 รูป)
                 </p>
-              </div>
+              </label>
             )}
           </div>
 
