@@ -203,26 +203,17 @@ const compressImage = (file: File): Promise<string> => {
         }])
       };
 
-      // 4. บันทึกลง localStorage
-      const updatedList = [newRepairItem, ...currentRequests];
-      localStorage.setItem('repair_requests_data', JSON.stringify(updatedList));
-
-      // 5. ยิง LINE Notify แจ้งซ่อมใหม่ (แบบ Async)
-      fetch(`${BASE_URL}/line_notify.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'new_repair',
-          ticket_id: res.id || `REQ-${Date.now()}`,
-          reporter: currentUser.name,
-          device: formData.equipmentType,
-          location: formData.location,
-          problem: formData.problemDescription,
-          priority: priority,
-          images: imagePreviews, // รายการรูปภาพ
-          created_at: new Date().toLocaleString('th-TH')
-        })
-      }).catch(err => console.error("LINE Notify Error:", err));
+      // 4. บันทึกลง localStorage อย่างปลอดภัย (ป้องกัน QuotaExceededError เมื่อมีรูปภาพหลายรูป)
+      try {
+        const itemForLocal = {
+          ...newRepairItem,
+          images: JSON.stringify(imagePreviews.slice(0, 2)) // เก็บตัวอย่าง 2 รูปลง cache ในเครื่องเพื่อประหยัดพื้นที่
+        };
+        const updatedList = [itemForLocal, ...currentRequests.slice(0, 15)];
+        localStorage.setItem('repair_requests_data', JSON.stringify(updatedList));
+      } catch (storageErr) {
+        console.warn("LocalStorage quota exceeded, skipping local cache:", storageErr);
+      }
 
       setSubmittedRequestNo(newRepairItem.request_no);
       setSubmitted(true);

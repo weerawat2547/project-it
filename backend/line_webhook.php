@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ============================================================
 // LINE OA Webhook Handler - ระบบบอทแจ้งซ่อมอุปกรณ์ไอที
 // ตั้ง URL ไฟล์นี้เป็น Webhook ใน LINE Developers Console
@@ -11,7 +11,7 @@ header("Content-Type: application/json; charset=UTF-8");
 // ============================================================
 define("LINE_CHANNEL_TOKEN", "DHjt0bQw6MKuH6jxwmD+nER4YGp+ixenbssdcDyU4Gw/zsFVB9k5tGGmbLTM+hsNYe70/kC5V/m7/8/CXOW5TBXrFdFnLaGfpx6cN2ZBgDn+c/yJWqFS0u5qu87TJEeb061QTJ/iHPYeYpzmCbb18wdB04t89/1O/w1cDnyilFU=");
 define("LINE_CHANNEL_SECRET", ""); // ใส่ Channel Secret ที่นี่ (ถ้ามี)
-define("SITE_URL", "http://localhost/it-repair-system-1/frontend/dist"); // URL หน้าเว็บแจ้งซ่อม
+define("SITE_URL", "https://it-repair-api.freehosting.dev/?openExternalBrowser=1"); // URL หน้าเว็บแจ้งซ่อม (เปิดในเบราว์เซอร์นอกอัตโนมัติ)
 
 // ============================================================
 // รับข้อมูลจาก LINE
@@ -339,25 +339,25 @@ function buildDefaultMessage(): array {
 // Helpers
 // ============================================================
 function statusLabelTH(string $status): string {
-    return match($status) {
-        "pending"       => "⏳ รอดำเนินการ",
-        "assigned"      => "👤 มอบหมายช่างแล้ว",
-        "in_progress"   => "⚙️ กำลังดำเนินการ",
-        "waiting_parts" => "📦 รออะไหล่",
-        "completed"     => "✅ ซ่อมเสร็จแล้ว",
-        "cancelled"     => "❌ ยกเลิก / ซ่อมไม่ได้",
-        default         => $status,
-    };
+    switch ($status) {
+        case "pending":       return "⏳ รอดำเนินการ";
+        case "assigned":      return "👤 มอบหมายช่างแล้ว";
+        case "in_progress":   return "⚙️ กำลังดำเนินการ";
+        case "waiting_parts": return "📦 รออะไหล่";
+        case "completed":     return "✅ ซ่อมเสร็จแล้ว";
+        case "cancelled":     return "❌ ยกเลิก / ซ่อมไม่ได้";
+        default:              return $status;
+    }
 }
 
 function priorityLabelTH(string $priority): string {
-    return match($priority) {
-        "urgent" => "🔴 เร่งด่วนมาก",
-        "high"   => "🟠 เร่งด่วน",
-        "medium" => "🟡 ปานกลาง",
-        "low"    => "🟢 ต่ำ",
-        default  => $priority,
-    };
+    switch ($priority) {
+        case "urgent": return "🔴 เร่งด่วนมาก";
+        case "high":   return "🟠 เร่งด่วน";
+        case "medium": return "🟡 ปานกลาง";
+        case "low":    return "🟢 ต่ำ";
+        default:       return $priority;
+    }
 }
 
 function containsAny(string $text, array $keywords): bool {
