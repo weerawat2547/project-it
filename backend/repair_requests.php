@@ -207,25 +207,7 @@ function createRequest(array $data) {
 
 function uploadBase64ToCloudinary(string $base64String, string $folder = 'it_repair_completed'): ?string {
     if (!function_exists('uploadToCloudinary')) return null;
-    if (str_starts_with($base64String, 'http://') || str_starts_with($base64String, 'https://')) {
-        return $base64String;
-    }
-    
-    $data = null;
-    if (str_contains($base64String, ';base64,')) {
-        $parts = explode(';base64,', $base64String);
-        $data = base64_decode($parts[1]);
-    } else {
-        $data = base64_decode($base64String, true);
-    }
-    
-    if (!$data) return null;
-
-    $tmpFile = tempnam(sys_get_temp_dir(), 'cld_');
-    file_put_contents($tmpFile, $data);
-    $url = uploadToCloudinary($tmpFile, $folder);
-    @unlink($tmpFile);
-    return $url;
+    return uploadToCloudinary($base64String, $folder);
 }
 
 function updateRequest(array $data) {
