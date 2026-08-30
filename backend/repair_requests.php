@@ -1,13 +1,4 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
 
 require_once __DIR__ . '/config.php';
 if (file_exists(__DIR__ . '/line_notify.php')) {
@@ -136,25 +127,33 @@ function createRequest(array $data) {
     $requestNo  = 'REQ-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
     $imagesJson = !empty($imageUrls) ? json_encode($imageUrls) : null;
 
-    $stmt = $pdo->prepare("INSERT INTO repair_requests
-        (id, request_no, user_id, equipment_type_id, equipment_model, serial_number,
-         location_description, location_lat, location_lng, problem_description, priority, images)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$id, $requestNo, $userId, $equipmentTypeId, $equipmentModel, $serialNumber,
-        $locationDescription, $locationLat, $locationLng, $problemDescription, $priority, $imagesJson]);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO repair_requests
+            (id, request_no, user_id, equipment_type_id, equipment_model, serial_number,
+             location_description, location_lat, location_lng, problem_description, priority, images)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$id, $requestNo, $userId, $equipmentTypeId ?: null, $equipmentModel, $serialNumber,
+            $locationDescription, $locationLat, $locationLng, $problemDescription, $priority, $imagesJson]);
 
-    if (function_exists('notifyRepairCreated')) {
-        notifyRepairCreated($pdo, [
-            'request_no'           => $requestNo,
-            'equipment_model'      => $equipmentModel,
-            'location_description' => $locationDescription,
-            'problem_description'  => $problemDescription,
-            'priority'             => $priority,
-            'image_urls'           => $imageUrls,
-        ]);
+        if (function_exists('notifyRepairCreated')) {
+            notifyRepairCreated($pdo, [
+                'request_no'           => $requestNo,
+                'equipment_model'      => $equipmentModel,
+                'location_description' => $locationDescription,
+                'problem_description'  => $problemDescription,
+                'priority'             => $priority,
+                'image_urls'           => $imageUrls,
+            ]);
+        }
+
+        echo json_encode(["success" => true, "message" => "แจ้งซ่อมสำเร็จ", "id" => $id, "request_no" => $requestNo]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "เกิดข้อผิดพลาดของฐานข้อมูล: " . $e->getMessage()]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "เกิดข้อผิดพลาด: " . $e->getMessage()]);
     }
-
-    echo json_encode(["success" => true, "message" => "แจ้งซ่อมสำเร็จ", "id" => $id, "request_no" => $requestNo]);
 }
 
 function uploadBase64ToCloudinary(string $base64String, string $folder = 'it_repair_completed'): ?string {

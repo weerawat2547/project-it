@@ -23,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // localhost     → ใช้ค่า default ด้านล่าง
 // InfinityFree  → แก้ไขค่าด้านล่างหลัง deploy
 // ===================================================
-$host     = getenv('DB_HOST')     ?: "sql107.infinityfree.com";
-$dbname   = getenv('DB_NAME')     ?: "if0_42548973_it_repair";
-$username = getenv('DB_USER')     ?: "if0_42548973";
-$password = getenv('DB_PASS')     ?: "Wee0900328740";
+$host     = getenv('DB_HOST')     ?: "localhost";
+$dbname   = getenv('DB_NAME')     ?: "it_repair_system";
+$username = getenv('DB_USER')     ?: "root";
+$password = getenv('DB_PASS')     ?: "";
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);

@@ -116,6 +116,10 @@ export default function ReportRepair() {
         body: fd,
       }).then(r => r.json());
 
+      if (res && res.success === false) {
+        throw new Error(res.message || 'Server returned an error');
+      }
+
       // 2. อ่านข้อมูลเดิมจาก localStorage เพื่อซิงค์
       const savedData = localStorage.getItem('repair_requests_data');
       let currentRequests = [];
@@ -175,8 +179,9 @@ export default function ReportRepair() {
       setSubmittedRequestNo(newRepairItem.request_no);
       setSubmitted(true);
       toast.success('ส่งคำขอซ่อมเรียบร้อยแล้ว');
-    } catch {
-      toast.error('เกิดข้อผิดพลาดในการส่งข้อมูล');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
     } finally {
       setLoading(false);
       setTimeout(() => {
