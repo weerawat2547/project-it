@@ -470,13 +470,14 @@ const compressImage = (file: File): Promise<string> => {
               <span className="text-sm font-bold text-slate-500">ขนาดไม่เกิน 5 MB/รูป</span>
             </div>
 
-            <Input
+            <input
               id="images"
               type="file"
               accept="image/*"
               multiple
               onChange={handleImageUpload}
-              className="hidden"
+              className="w-0 h-0 opacity-0 absolute -z-10"
+              tabIndex={-1}
             />
 
             {imagePreviews.length > 0 ? (

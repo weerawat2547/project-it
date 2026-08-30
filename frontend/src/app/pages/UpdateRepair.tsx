@@ -167,14 +167,9 @@ export default function UpdateRepair() {
         console.warn("LocalStorage quota error in UpdateRepair:", storageErr);
       }
 
-      // 3. ยิง LINE Notify อัปเดตสถานะพร้อมแนบ Cloudinary URL
-      try {
-        await sendLineUpdateNotification(selectedRequest, updateData.status, updateData.technicianNotes, finalAfterImages);
-      } catch (lineErr) {
-        console.warn("LINE Notification non-fatal error:", lineErr);
-      }
-
-      toast.success('อัปเดตสถานะและอัปโหลดรูปผลงานเรียบร้อยแล้ว');
+      // (LINE Notify ถูกจัดการโดยฝั่ง Backend เรียบร้อยแล้ว จึงไม่ต้องเรียกจาก Frontend อีก)
+      
+      toast.success('อัปเดตสถานะการซ่อมสำเร็จแล้ว!');
       setDialogOpen(false);
     } catch (err: any) {
       console.error("Save error:", err);
@@ -338,7 +333,7 @@ export default function UpdateRepair() {
                 <Button variant="outline" className="w-full h-20 rounded-xl border-dashed" onClick={() => document.getElementById('repair_img')?.click()}>
                     <Camera className="mr-2"/> คลิกเพื่ออัปโหลดรูปผลงาน
                 </Button>
-                <input type="file" id="repair_img" className="hidden" multiple accept="image/*" onChange={async (e) => {
+                <input type="file" id="repair_img" className="w-0 h-0 opacity-0 absolute -z-10" tabIndex={-1} multiple accept="image/*" onChange={async (e) => {
                     if (e.target.files) {
                         const files = Array.from(e.target.files);
                         for (const file of files) {
