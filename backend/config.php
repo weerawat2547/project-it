@@ -1,4 +1,21 @@
 <?php
+// Polyfills สำหรับ PHP เวอร์ชั่นต่ำกว่า 8.0
+if (!function_exists('str_starts_with')) {
+    function str_starts_with($haystack, $needle) {
+        return $needle === '' || strpos($haystack, $needle) === 0;
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with($haystack, $needle) {
+        return $needle === '' || substr($haystack, -strlen($needle)) === $needle;
+    }
+}
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        return $needle === '' || strpos($haystack, $needle) !== false;
+    }
+}
+
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 // อนุญาต localhost และ Vercel frontend
 if (preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin)
@@ -19,14 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // ===================================================
-// ตั้งค่าฐานข้อมูล
-// localhost     → ใช้ค่า default ด้านล่าง
-// InfinityFree  → แก้ไขค่าด้านล่างหลัง deploy
+// ตั้งค่าฐานข้อมูลอัตโนมัติ (Localhost vs Hosting)
 // ===================================================
-$host     = getenv('DB_HOST')     ?: "localhost";
-$dbname   = getenv('DB_NAME')     ?: "it_repair_system";
-$username = getenv('DB_USER')     ?: "root";
-$password = getenv('DB_PASS')     ?: "";
+$serverName = $_SERVER['SERVER_NAME'] ?? 'localhost';
+if ($serverName === 'localhost' || $serverName === '127.0.0.1') {
+    $host     = getenv('DB_HOST') ?: "localhost";
+    $dbname   = getenv('DB_NAME') ?: "it_repair_system";
+    $username = getenv('DB_USER') ?: "root";
+    $password = getenv('DB_PASS') ?: "";
+} else {
+    $host     = getenv('DB_HOST') ?: "sql107.infinityfree.com";
+    $dbname   = getenv('DB_NAME') ?: "if0_42548973_it_repair";
+    $username = getenv('DB_USER') ?: "if0_42548973";
+    $password = getenv('DB_PASS') ?: "Wee0900328740";
+}
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);

@@ -1,19 +1,20 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+if (basename($_SERVER['PHP_SELF']) === 'line_notify.php') {
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
+
+    $rawInput = file_get_contents('php://input');
+    file_put_contents('debug.log', date('Y-m-d H:i:s') . ' - Payload: ' . $rawInput . PHP_EOL, FILE_APPEND);
+    
+    // ตั้งตัวแปร global เพื่อให้ใช้ข้างล่างได้
+    $GLOBALS['line_notify_raw_input'] = $rawInput;
 }
-
-// อ่านข้อมูล Payload
-$rawInput = file_get_contents('php://input');
-
-// บันทึก Payload สำหรับ Debug
-file_put_contents('debug.log', date('Y-m-d H:i:s') . ' - Payload: ' . $rawInput . PHP_EOL, FILE_APPEND);
-
 define('LINE_CHANNEL_TOKEN', 'DHjt0bQw6MKuH6jxwmD+nER4YGp+ixenbssdcDyU4Gw/zsFVB9k5tGGmbLTM+hsNYe70/kC5V/m7/8/CXOW5TBXrFdFnLaGfpx6cN2ZBgDn+c/yJWqFS0u5qu87TJEeb061QTJ/iHPYeYpzmCbb18wdB04t89/1O/w1cDnyilFU=');
 
 function sendLineMessage(string $userId, string $message, array $imageUrls = []): bool {
@@ -220,32 +221,31 @@ function notifyRepairUpdated(
 }
 
 function statusLabel(string $status): string {
-    return match($status) {
-        'pending'       => '⏳ รอดำเนินการ',
-        'assigned'      => '👤 มอบหมายแล้ว',
-        'in_progress'   => '⚙️ กำลังดำเนินการ',
-        'waiting_parts' => '📦 รออะไหล่',
-        'completed'     => '✅ ซ่อมเสร็จแล้ว',
-        'cancelled'     => '❌ ยกเลิก/ซ่อมไม่ได้',
-        default         => $status,
-    };
+    switch ($status) {
+        case 'pending':       return '⏳ รอดำเนินการ';
+        case 'assigned':      return '👤 มอบหมายแล้ว';
+        case 'in_progress':   return '⚙️ กำลังดำเนินการ';
+        case 'waiting_parts': return '📦 รออะไหล่';
+        case 'completed':     return '✅ ซ่อมเสร็จแล้ว';
+        case 'cancelled':     return '❌ ยกเลิก/ซ่อมไม่ได้';
+        default:              return $status;
+    }
 }
 
 function priorityLabel(string $priority): string {
-    return match($priority) {
-        'urgent' => '🔴 เร่งด่วนมาก',
-        'high'   => '🟠 เร่งด่วน',
-        'medium' => '🟡 ปานกลาง',
-        'low'    => '🟡 ปานกลาง',
-        default  => $priority,
-    };
+    switch ($priority) {
+        case 'urgent': return '🔴 เร่งด่วนมาก';
+        case 'high':   return '🟠 เร่งด่วน';
+        case 'medium': return '🟡 ปานกลาง';
+        case 'low':    return '🟡 ปานกลาง';
+        default:       return $priority;
+    }
 }
 
-// จัดการ Request ที่ส่งเข้ามาจาก Frontend
-$rawInput = file_get_contents('php://input');
 
-if (!empty($rawInput)) {
-    $input = json_decode($rawInput, true);
+$rawInputToCheck = $GLOBALS['line_notify_raw_input'] ?? '';
+if (!empty($rawInputToCheck)) {
+    $input = json_decode($rawInputToCheck, true);
 
     // บันทึก Log สำหรับตรวจสอบ
     file_put_contents('debug.log', date('Y-m-d H:i:s') . ' - Decoded Input: ' . print_r($input, true) . PHP_EOL, FILE_APPEND);

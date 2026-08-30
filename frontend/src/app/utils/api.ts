@@ -1,5 +1,5 @@
 export const BASE_URL = import.meta.env.PROD 
-  ? 'https://it-repair-api.freehosting.dev' 
+  ? '' 
   : 'http://localhost/it_repair_api';
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
