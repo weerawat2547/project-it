@@ -103,6 +103,10 @@ export default function ReportRepair() {
       // 1. ส่งข้อมูลผ่าน API ด้วย JSON แทน FormData เพื่อหลีกเลี่ยงการโดนบล็อก
       const payload = {
         user_id: currentUser.id,
+        user_name: currentUser.name,
+        user_phone: currentUser.phone,
+        department: currentUser.department,
+        student_id: currentUser.student_id,
         equipment_type_id: formData.equipmentTypeId || '',
         equipment_model: formData.equipmentModel,
         serial_number: formData.serialNumber,

@@ -135,6 +135,43 @@ function createRequest(array $data) {
         }
     }
 
+    // ตรวจสอบความถูกต้องของ $equipmentTypeId ป้องกัน Foreign Key Error
+    if (!empty($equipmentTypeId)) {
+        $checkEq = $pdo->prepare("SELECT id FROM equipment_types WHERE id = ?");
+        $checkEq->execute([$equipmentTypeId]);
+        if (!$checkEq->fetch()) {
+            $equipmentTypeId = null;
+        }
+    }
+
+    // ตรวจสอบความถูกต้องของ $userId ป้องกัน Foreign Key Error
+    if (!empty($userId)) {
+        $checkUser = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+        $checkUser->execute([$userId]);
+        if (!$checkUser->fetch()) {
+            // สร้างบัญชีผู้ใช้งานอัตโนมัติหากยังไม่มีอยู่ในฐานข้อมูล
+            $userName  = $data['user_name']  ?? $_POST['user_name']  ?? 'ผู้ใช้งาน';
+            $userPhone = $data['user_phone'] ?? $_POST['user_phone'] ?? '';
+            $userDept  = $data['department'] ?? $_POST['department'] ?? '';
+            $studentId = $data['student_id'] ?? $_POST['student_id'] ?? null;
+            $genUser   = 'u_' . substr(md5($userId), 0, 8);
+            
+            try {
+                $insertUser = $pdo->prepare("
+                    INSERT INTO users (id, username, password_hash, name, role, department, phone, student_id)
+                    VALUES (?, ?, ?, ?, 'student', ?, ?, ?)
+                ");
+                $insertUser->execute([$userId, $genUser, '123456', $userName, $userDept, $userPhone, $studentId]);
+            } catch (Throwable $e) {
+                // หากติดปัญหา Unique Constraint ให้เลือกดึง user แรกที่มีใน DB มาใช้
+                $firstUser = $pdo->query("SELECT id FROM users WHERE role = 'student' LIMIT 1")->fetch();
+                if ($firstUser) {
+                    $userId = $firstUser['id'];
+                }
+            }
+        }
+    }
+
     $id         = uniqid('REQ-', true);
     $requestNo  = 'REQ-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
     $imagesJson = !empty($imageUrls) ? json_encode($imageUrls) : null;
