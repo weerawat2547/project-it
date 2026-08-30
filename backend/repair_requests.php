@@ -303,10 +303,28 @@ function updateRequest(array $data) {
         $pdo->exec("ALTER TABLE repair_requests ADD COLUMN repair_image TEXT NULL");
     } catch (Throwable $e) {}
 
+    @set_time_limit(60);
+
+    // ตรวจสอบความถูกต้องของ $assignedTo ป้องกัน Foreign Key Error
+    if (!empty($assignedTo)) {
+        $checkTech = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+        $checkTech->execute([$assignedTo]);
+        if (!$checkTech->fetch()) {
+            $assignedTo = null;
+        }
+    } else {
+        $assignedTo = null;
+    }
+
     $completedAt = ($status === 'completed') ? date('Y-m-d H:i:s') : null;
 
-    $sql = "UPDATE repair_requests SET status = ?, assigned_to = ?, technician_notes = ?, status_history = ?, updated_at = NOW(), completed_at = ?";
-    $params = [$status, $assignedTo, $technicianNotes, json_encode($history), $completedAt];
+    $sql = "UPDATE repair_requests SET status = ?, technician_notes = ?, status_history = ?, updated_at = NOW(), completed_at = ?";
+    $params = [$status, $technicianNotes, json_encode($history), $completedAt];
+
+    if ($assignedTo !== null) {
+        $sql .= ", assigned_to = ?";
+        $params[] = $assignedTo;
+    }
 
     if ($repairImageUrl) {
         $sql .= ", repair_image = ?";
@@ -326,9 +344,11 @@ function updateRequest(array $data) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
     } catch (Throwable $dbErr) {
-        $sqlFallback = "UPDATE repair_requests SET status = ?, assigned_to = ?, technician_notes = ?, status_history = ?, updated_at = NOW() WHERE id = ? OR request_no = ?";
-        $stmtFB = $pdo->prepare($sqlFallback);
-        $stmtFB->execute([$status, $assignedTo, $technicianNotes, json_encode($history), $id, $id]);
+        try {
+            $sqlFallback = "UPDATE repair_requests SET status = ?, technician_notes = ?, status_history = ?, updated_at = NOW() WHERE id = ? OR request_no = ?";
+            $stmtFB = $pdo->prepare($sqlFallback);
+            $stmtFB->execute([$status, $technicianNotes, json_encode($history), $id, $id]);
+        } catch (Throwable $e) {}
     }
 
     // ส่งแจ้งเตือน LINE OA พร้อม Cloudinary URL
